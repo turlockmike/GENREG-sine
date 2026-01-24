@@ -1,0 +1,27 @@
+{
+  "test_id": "H2",
+  "task": "sine",
+  "true_signal": 16,
+  "noise_dims": 240,
+  "hidden_size": 8,
+  "compression_ratio": 32,
+  "population_size": 40,
+  "final_mse_mean": 0.016822533681988716,
+  "final_mse_std": 0.0,
+  "final_k_mlp_mean": 8.0,
+  "final_k_mlp_std": 0.0,
+  "final_k_ratio_mean": 1.0,
+  "final_k_ratio_std": 0.0,
+  "n_seeds": 1,
+  "k_ratio_variance": 0,
+  "k_ratio_range": 0,
+  "threshold_sensitivity": {
+    "0.95": {
+      "k_ratio_mean": 1.0,
+      "k_ratio_std": 0
+    }
+  },
+  "hypothesis": "k \u2248 8/8 (baseline)",
+  "theory_prediction": "high_k",
+  "theory_validated": true
+}

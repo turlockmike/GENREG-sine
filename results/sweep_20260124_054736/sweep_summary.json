@@ -1,0 +1,353 @@
+[
+  {
+    "test_id": "N0",
+    "task": "sine",
+    "true_signal": 16,
+    "noise_dims": 0,
+    "hidden_size": 8,
+    "compression_ratio": 2,
+    "population_size": 40,
+    "final_mse_mean": 0.0017408697167411447,
+    "final_mse_std": 0.0,
+    "final_k_mlp_mean": 0.0,
+    "final_k_mlp_std": 0.0,
+    "final_k_ratio_mean": 0.0,
+    "final_k_ratio_std": 0.0,
+    "n_seeds": 1,
+    "k_ratio_variance": 0,
+    "k_ratio_range": 0,
+    "threshold_sensitivity": {
+      "0.95": {
+        "k_ratio_mean": 0.0,
+        "k_ratio_std": 0
+      }
+    },
+    "hypothesis": "k \u2248 0-1, baseline",
+    "theory_prediction": "low_k",
+    "theory_validated": true
+  },
+  {
+    "test_id": "N1",
+    "task": "sine",
+    "true_signal": 16,
+    "noise_dims": 16,
+    "hidden_size": 8,
+    "compression_ratio": 4,
+    "population_size": 40,
+    "final_mse_mean": 0.004412613809108734,
+    "final_mse_std": 0.0,
+    "final_k_mlp_mean": 0.0,
+    "final_k_mlp_std": 0.0,
+    "final_k_ratio_mean": 0.0,
+    "final_k_ratio_std": 0.0,
+    "n_seeds": 1,
+    "k_ratio_variance": 0,
+    "k_ratio_range": 0,
+    "threshold_sensitivity": {
+      "0.95": {
+        "k_ratio_mean": 0.0,
+        "k_ratio_std": 0
+      }
+    },
+    "hypothesis": "k low, mild pressure",
+    "theory_prediction": "moderate_k",
+    "theory_validated": false
+  },
+  {
+    "test_id": "N2",
+    "task": "sine",
+    "true_signal": 16,
+    "noise_dims": 48,
+    "hidden_size": 8,
+    "compression_ratio": 8,
+    "population_size": 40,
+    "final_mse_mean": 0.013070161454379559,
+    "final_mse_std": 0.0,
+    "final_k_mlp_mean": 0.0,
+    "final_k_mlp_std": 0.0,
+    "final_k_ratio_mean": 0.0,
+    "final_k_ratio_std": 0.0,
+    "n_seeds": 1,
+    "k_ratio_variance": 0,
+    "k_ratio_range": 0,
+    "threshold_sensitivity": {
+      "0.95": {
+        "k_ratio_mean": 0.0,
+        "k_ratio_std": 0
+      }
+    },
+    "hypothesis": "k rising",
+    "theory_prediction": "moderate_k",
+    "theory_validated": false
+  },
+  {
+    "test_id": "N3",
+    "task": "sine",
+    "true_signal": 16,
+    "noise_dims": 112,
+    "hidden_size": 8,
+    "compression_ratio": 16,
+    "population_size": 40,
+    "final_mse_mean": 0.017173118889331818,
+    "final_mse_std": 0.0,
+    "final_k_mlp_mean": 6.0,
+    "final_k_mlp_std": 0.0,
+    "final_k_ratio_mean": 0.75,
+    "final_k_ratio_std": 0.0,
+    "n_seeds": 1,
+    "k_ratio_variance": 0,
+    "k_ratio_range": 0,
+    "threshold_sensitivity": {
+      "0.95": {
+        "k_ratio_mean": 0.75,
+        "k_ratio_std": 0
+      }
+    },
+    "hypothesis": "k moderate-high",
+    "theory_prediction": "moderate_k",
+    "theory_validated": true
+  },
+  {
+    "test_id": "N4",
+    "task": "sine",
+    "true_signal": 16,
+    "noise_dims": 240,
+    "hidden_size": 8,
+    "compression_ratio": 32,
+    "population_size": 40,
+    "final_mse_mean": 0.016822533681988716,
+    "final_mse_std": 0.0,
+    "final_k_mlp_mean": 8.0,
+    "final_k_mlp_std": 0.0,
+    "final_k_ratio_mean": 1.0,
+    "final_k_ratio_std": 0.0,
+    "n_seeds": 1,
+    "k_ratio_variance": 0,
+    "k_ratio_range": 0,
+    "threshold_sensitivity": {
+      "0.95": {
+        "k_ratio_mean": 1.0,
+        "k_ratio_std": 0
+      }
+    },
+    "hypothesis": "k high (baseline)",
+    "theory_prediction": "high_k",
+    "theory_validated": true
+  },
+  {
+    "test_id": "N5",
+    "task": "sine",
+    "true_signal": 16,
+    "noise_dims": 496,
+    "hidden_size": 8,
+    "compression_ratio": 64,
+    "population_size": 40,
+    "final_mse_mean": 0.0928373709321022,
+    "final_mse_std": 0.0,
+    "final_k_mlp_mean": 8.0,
+    "final_k_mlp_std": 0.0,
+    "final_k_ratio_mean": 1.0,
+    "final_k_ratio_std": 0.0,
+    "n_seeds": 1,
+    "k_ratio_variance": 0,
+    "k_ratio_range": 0,
+    "threshold_sensitivity": {
+      "0.95": {
+        "k_ratio_mean": 1.0,
+        "k_ratio_std": 0
+      }
+    },
+    "hypothesis": "k \u2248 8/8, stress test",
+    "theory_prediction": "high_k",
+    "theory_validated": true
+  },
+  {
+    "test_id": "H1",
+    "task": "sine",
+    "true_signal": 16,
+    "noise_dims": 240,
+    "hidden_size": 4,
+    "compression_ratio": 64,
+    "population_size": 40,
+    "final_mse_mean": 0.009702790528535843,
+    "final_mse_std": 0.0,
+    "final_k_mlp_mean": 4.0,
+    "final_k_mlp_std": 0.0,
+    "final_k_ratio_mean": 1.0,
+    "final_k_ratio_std": 0.0,
+    "n_seeds": 1,
+    "k_ratio_variance": 0,
+    "k_ratio_range": 0,
+    "threshold_sensitivity": {
+      "0.95": {
+        "k_ratio_mean": 1.0,
+        "k_ratio_std": 0
+      }
+    },
+    "hypothesis": "k = 4/4, forced full",
+    "theory_prediction": "high_k",
+    "theory_validated": true
+  },
+  {
+    "test_id": "H2",
+    "task": "sine",
+    "true_signal": 16,
+    "noise_dims": 240,
+    "hidden_size": 8,
+    "compression_ratio": 32,
+    "population_size": 40,
+    "final_mse_mean": 0.016822533681988716,
+    "final_mse_std": 0.0,
+    "final_k_mlp_mean": 8.0,
+    "final_k_mlp_std": 0.0,
+    "final_k_ratio_mean": 1.0,
+    "final_k_ratio_std": 0.0,
+    "n_seeds": 1,
+    "k_ratio_variance": 0,
+    "k_ratio_range": 0,
+    "threshold_sensitivity": {
+      "0.95": {
+        "k_ratio_mean": 1.0,
+        "k_ratio_std": 0
+      }
+    },
+    "hypothesis": "k \u2248 8/8 (baseline)",
+    "theory_prediction": "high_k",
+    "theory_validated": true
+  },
+  {
+    "test_id": "H3",
+    "task": "sine",
+    "true_signal": 16,
+    "noise_dims": 240,
+    "hidden_size": 16,
+    "compression_ratio": 16,
+    "population_size": 40,
+    "final_mse_mean": 0.022960567846894264,
+    "final_mse_std": 0.0,
+    "final_k_mlp_mean": 15.0,
+    "final_k_mlp_std": 0.0,
+    "final_k_ratio_mean": 0.9375,
+    "final_k_ratio_std": 0.0,
+    "n_seeds": 1,
+    "k_ratio_variance": 0,
+    "k_ratio_range": 0,
+    "threshold_sensitivity": {
+      "0.95": {
+        "k_ratio_mean": 0.9375,
+        "k_ratio_std": 0
+      }
+    },
+    "hypothesis": "k < 16? more capacity",
+    "theory_prediction": "high_k",
+    "theory_validated": true
+  },
+  {
+    "test_id": "H4",
+    "task": "sine",
+    "true_signal": 16,
+    "noise_dims": 240,
+    "hidden_size": 32,
+    "compression_ratio": 8,
+    "population_size": 40,
+    "final_mse_mean": 0.03920694440603256,
+    "final_mse_std": 0.0,
+    "final_k_mlp_mean": 26.0,
+    "final_k_mlp_std": 0.0,
+    "final_k_ratio_mean": 0.8125,
+    "final_k_ratio_std": 0.0,
+    "n_seeds": 1,
+    "k_ratio_variance": 0,
+    "k_ratio_range": 0,
+    "threshold_sensitivity": {
+      "0.95": {
+        "k_ratio_mean": 0.8125,
+        "k_ratio_std": 0
+      }
+    },
+    "hypothesis": "k << 32? excess capacity",
+    "theory_prediction": "high_k",
+    "theory_validated": true
+  },
+  {
+    "test_id": "C1",
+    "task": "sine",
+    "true_signal": 16,
+    "noise_dims": 0,
+    "hidden_size": 8,
+    "compression_ratio": 2,
+    "population_size": 40,
+    "final_mse_mean": 0.0017408697167411447,
+    "final_mse_std": 0.0,
+    "final_k_mlp_mean": 0.0,
+    "final_k_mlp_std": 0.0,
+    "final_k_ratio_mean": 0.0,
+    "final_k_ratio_std": 0.0,
+    "n_seeds": 1,
+    "k_ratio_variance": 0,
+    "k_ratio_range": 0,
+    "threshold_sensitivity": {
+      "0.95": {
+        "k_ratio_mean": 0.0,
+        "k_ratio_std": 0
+      }
+    },
+    "hypothesis": "k \u2248 0",
+    "theory_prediction": "low_k",
+    "theory_validated": true
+  },
+  {
+    "test_id": "C2",
+    "task": "sine",
+    "true_signal": 64,
+    "noise_dims": 0,
+    "hidden_size": 8,
+    "compression_ratio": 8,
+    "population_size": 40,
+    "final_mse_mean": 0.0009984973585233092,
+    "final_mse_std": 0.0,
+    "final_k_mlp_mean": 0.0,
+    "final_k_mlp_std": 0.0,
+    "final_k_ratio_mean": 0.0,
+    "final_k_ratio_std": 0.0,
+    "n_seeds": 1,
+    "k_ratio_variance": 0,
+    "k_ratio_range": 0,
+    "threshold_sensitivity": {
+      "0.95": {
+        "k_ratio_mean": 0.0,
+        "k_ratio_std": 0
+      }
+    },
+    "hypothesis": "k \u2248 0 (still no noise)",
+    "theory_prediction": "low_k",
+    "theory_validated": true
+  },
+  {
+    "test_id": "C3",
+    "task": "sine",
+    "true_signal": 256,
+    "noise_dims": 0,
+    "hidden_size": 8,
+    "compression_ratio": 32,
+    "population_size": 40,
+    "final_mse_mean": 0.002688546199351549,
+    "final_mse_std": 0.0,
+    "final_k_mlp_mean": 0.0,
+    "final_k_mlp_std": 0.0,
+    "final_k_ratio_mean": 0.0,
+    "final_k_ratio_std": 0.0,
+    "n_seeds": 1,
+    "k_ratio_variance": 0,
+    "k_ratio_range": 0,
+    "threshold_sensitivity": {
+      "0.95": {
+        "k_ratio_mean": 0.0,
+        "k_ratio_std": 0
+      }
+    },
+    "hypothesis": "k \u2248 0 (compression alone)",
+    "theory_prediction": "low_k",
+    "theory_validated": true
+  }
+]

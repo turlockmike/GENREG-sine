@@ -1,0 +1,27 @@
+{
+  "test_id": "N2",
+  "task": "sine",
+  "true_signal": 16,
+  "noise_dims": 48,
+  "hidden_size": 8,
+  "compression_ratio": 8,
+  "population_size": 40,
+  "final_mse_mean": 0.013070161454379559,
+  "final_mse_std": 0.0,
+  "final_k_mlp_mean": 0.0,
+  "final_k_mlp_std": 0.0,
+  "final_k_ratio_mean": 0.0,
+  "final_k_ratio_std": 0.0,
+  "n_seeds": 1,
+  "k_ratio_variance": 0,
+  "k_ratio_range": 0,
+  "threshold_sensitivity": {
+    "0.95": {
+      "k_ratio_mean": 0.0,
+      "k_ratio_std": 0
+    }
+  },
+  "hypothesis": "k rising",
+  "theory_prediction": "moderate_k",
+  "theory_validated": false
+}

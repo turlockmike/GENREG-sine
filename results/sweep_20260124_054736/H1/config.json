@@ -1,0 +1,14 @@
+{
+  "test_id": "H1",
+  "true_signal": 16,
+  "noise_dims": 240,
+  "hidden_size": 4,
+  "hypothesis": "k = 4/4, forced full",
+  "task": "sine",
+  "saturation_thresholds": [
+    0.95
+  ],
+  "seeds": [
+    42
+  ]
+}
