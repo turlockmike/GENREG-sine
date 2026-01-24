@@ -15,10 +15,10 @@ When a network must attend to a subset of its inputs (filtering irrelevant dimen
 
 Standard deep learning uses massive networks because gradient descent requires smooth, high-dimensional landscapes to navigate. GENREG achieves comparable results with drastically smaller architectures:
 
-| Task | Standard Approach | GENREG |
-|------|-------------------|--------|
-| Sine approximation | 64+ neurons | 8 neurons |  -- yes I know gradients can probably do it with extreme fine tuning and drop out, I'm not saying they can't, I'm saying its difficult. 
-| Humanoid locomotion | 256+ neurons | 16 neurons | -- This model is currently training and has reached 3 meters, evolution is slow as to why this github is not available yet. current training has been runing for 18 hours as of this publication. 
+| Task | Standard Approach | GENREG |Justification|
+|------|-------------------|--------|---------------------------------|
+| Sine approximation | 64+ neurons | 8 neurons |  Yes I know gradients can probably do it with extreme fine tuning and drop out, I'm not saying they can't, I'm saying its difficult. |
+| Humanoid locomotion | 256+ neurons | 16 neurons | This model is currently training and has reached 3 meters, evolution is slow as to why this github is not available yet. current training has been runing for 18 hours as of this publication. |
 | Function approximation | Millions of params | Thousands of params |
 
 The secret is hybrid computation. With 8 neurons, a fully continuous network has limited representational power. But 8 saturated neurons create 256 discrete operational modes. A hybrid configuration (e.g., 6 saturated + 2 continuous) provides 64 discrete modes with smooth interpolation within each, combining the searchability of discrete spaces with the expressiveness of continuous spaces.
