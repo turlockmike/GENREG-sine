@@ -70,6 +70,14 @@ Even at 32:1 compression, networks remain fully continuous when all inputs are t
 
 Given excess capacity, evolution preserves some continuous neurons for fine-grained modulation while allocating others to discrete gating. The ~75-80% saturation ratio appears to be a stable attractor.
 
+### Visualizations
+
+![Noise Dimensions vs Saturation](assets/noise_dimensions_chart.png)
+*Saturation ratio (k/n) as a function of task-irrelevant input dimensions. A clear threshold exists around 100 dimensions where saturation becomes necessary.*
+
+![Hidden Size vs Saturation](assets/hidden_size_chart.png)
+*With excess capacity, networks maintain hybrid configurations (~80% saturated) rather than full saturation, preserving continuous neurons for fine-grained control.*
+
 ## Repository Structure
 
 ```
@@ -84,6 +92,9 @@ GENREG-sine/
 ├── sine_genome.py            # Individual genome (MLP + proteins)
 ├── sine_mlp.py               # MLP controller
 ├── sine_proteins.py          # Protein cascade (trust mechanism)
+├── assets/                   # Figures and visualizations
+│   ├── noise_dimensions_chart.png
+│   └── hidden_size_chart.png
 └── results/                  # Training outputs and checkpoints
 ```
 
@@ -99,7 +110,7 @@ GENREG-sine/
 ### Installation
 
 ```bash
-git clone https://github.com/yourusername/GENREG-sine.git
+git clone https://github.com/A1CST/GENREG-sine.git
 cd GENREG-sine
 pip install torch numpy
 ```
