@@ -10,7 +10,6 @@ The key insight: **saturation is not a bug, it is a learned selective attention 
 
 When a network must attend to a subset of its inputs (filtering irrelevant dimensions, focusing on task-relevant signals), evolution discovers that saturating neurons into binary gates is an efficient solution. This creates a hybrid state space of 2^k discrete regions with continuous interpolation within each region.
 
-## Why This Matters
 
 ### Doing More With Less
 
@@ -18,8 +17,8 @@ Standard deep learning uses massive networks because gradient descent requires s
 
 | Task | Standard Approach | GENREG |
 |------|-------------------|--------|
-| Sine approximation | 64+ neurons | 8 neurons |
-| Humanoid locomotion | 256+ neurons | 16 neurons |
+| Sine approximation | 64+ neurons | 8 neurons |  -- yes I know gradients can probably do it with extreme fine tuning and drop out, I'm not saying they can't, I'm saying its difficult. 
+| Humanoid locomotion | 256+ neurons | 16 neurons | -- This model is currently training and has reached 3 meters, evolution is slow as to why this github is not available yet. current training has been runing for 18 hours as of this publication. 
 | Function approximation | Millions of params | Thousands of params |
 
 The secret is hybrid computation. With 8 neurons, a fully continuous network has limited representational power. But 8 saturated neurons create 256 discrete operational modes. A hybrid configuration (e.g., 6 saturated + 2 continuous) provides 64 discrete modes with smooth interpolation within each, combining the searchability of discrete spaces with the expressiveness of continuous spaces.
