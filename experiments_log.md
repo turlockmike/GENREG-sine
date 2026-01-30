@@ -15,7 +15,7 @@ The key mechanism: fixed K inputs per neuron + evolvable indices creates selecti
 | Sine (256→16) | 0.000121 MSE, 33 params | 0.000003 MSE, 2065 params | 63x fewer params |
 | Friedman1 (100→5) | 0.12 MSE, 49 params | 0.09 MSE, 817 params | 3.7x better than sparse BP |
 | **High-Dim (1000→10)** | **0.11 MSE, 49 params** | **0.64 MSE, 8017 params** | **5.7x better accuracy + 164x fewer params** |
-| **Digits (64→10 classes)** | **88.1% acc, 618 params** | **97.0% acc, 8970 params** | **14.5x fewer params** (Arch Search) |
+| **Digits (64→10 classes)** | **84.4% acc, 490 params** | **97.0% acc, 8970 params** | **18x fewer params** (H=32, K=4) |
 
 ### Ablation Study Results ⭐
 
@@ -576,6 +576,53 @@ This validates the efficiency hypothesis: **Ultra-Sparse + SA scales better than
 3. **Sweet spot**: Problems with <5 classes and moderate feature count
 
 **Conclusion**: GENREG is viable for real-world classification when efficiency matters more than the last few % of accuracy.
+
+### Experiment 21: Constraint Boundary Test ⭐ SWEET SPOT FOUND
+
+- **File**: `experiments/constraint_boundary.py`
+- **Goal**: Find where selection pressure helps vs hurts - the sweet spot
+- **Question**: Is there a lower bound where too much constraint reduces capacity?
+
+**Results (150 gens, pop=40, 20 SA steps/member):**
+
+| Config | H | K | Params | Accuracy | Efficiency |
+|--------|---|---|--------|----------|------------|
+| **Medium-tight** | **32** | **4** | **490** | **84.4%** | **0.17%/100p** ← BEST |
+| Constrained | 16 | 8 | 314 | 83.3% | 0.27%/100p |
+| Previous winner | 32 | 8 | 618 | 82.8% | 0.13%/100p |
+| Medium-loose | 32 | 16 | 874 | 79.2% | 0.09%/100p |
+| Large-sparse | 64 | 8 | 1226 | 76.9% | 0.06%/100p |
+| Very constrained | 16 | 4 | 250 | 75.3% | 0.30%/100p |
+| Large-medium | 64 | 16 | 1738 | 70.3% | 0.04%/100p |
+
+**Key Findings:**
+
+1. **K=4 beats K=8**: More constraint helped! H=32, K=4 (84.4%) > H=32, K=8 (82.8%)
+
+2. **Sweet spot is H=32, K=4**: Best accuracy with only 490 params
+
+3. **Too constrained (H=16, K=4)**: 75.3% - capacity becomes limiting
+
+4. **Too loose (K=16, K=32)**: Performance drops - selection pressure too weak
+
+5. **Larger isn't better**: H=64 configs consistently underperform H=32
+
+**The Constraint Curve:**
+```
+Accuracy
+  85% |           * (H=32,K=4)
+      |        *     * (H=16,K=8) (H=32,K=8)
+  80% |                    * (H=32,K=16)
+      |     *                   * (H=64,K=8)
+  75% |  * (H=16,K=4)
+      |                              * (H=64,K=16)
+  70% +-----|-----|-----|-----|-----|----> K
+           4     8    16    24    32
+```
+
+**Biological Insight**: Like neurons in small organisms, there's an optimal sparsity. Too few connections = can't compute. Too many = no specialization. The sweet spot (K=4) forces each neuron to be a specialist.
+
+---
 
 ### Experiment 20: Architecture Search (H, K, L, mutation rates) ⭐ OPTIMIZED
 

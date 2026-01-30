@@ -224,6 +224,38 @@ for iteration in range(iterations):
 
 ## Medium Priority
 
+### Efficiency-Aware Fitness Function ⭐ NEW
+**Question**: Can we explicitly reward efficiency, not just accuracy?
+
+**Current approach**: Fitness = -MSE (accuracy only)
+- Smaller networks won because they happened to perform better
+- No explicit selection pressure for efficiency
+
+**Proposed approaches**:
+```python
+# Option 1: Penalty term
+fitness = -MSE - λ * num_params
+
+# Option 2: Efficiency ratio
+fitness = accuracy / log(params)
+
+# Option 3: Pareto optimization
+# Track (accuracy, params) pairs, evolve toward Pareto frontier
+
+# Option 4: Multi-objective evolution (NSGA-II style)
+# Maintain population diversity across accuracy/efficiency tradeoff
+```
+
+**Why this matters**:
+- Current results may be problem-specific (digits happened to favor small nets)
+- Explicit efficiency pressure would generalize to other problems
+- Aligns with biological evolution (energy cost matters)
+- Could discover optimal accuracy/efficiency tradeoff automatically
+
+**Experiment**: Run arch search with efficiency term, compare Pareto frontiers
+
+---
+
 ### 4. Evolvable K - Selection Pressure on Sparsity Itself
 **Question**: Can K itself evolve, so the network learns how many inputs each neuron needs?
 
