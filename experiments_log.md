@@ -874,6 +874,141 @@ This is a **meaningful contribution** to sparse neural network research:
 
 ---
 
+### Experiment 24: Full Training Method Comparison ⭐ SATURATION MYSTERY SOLVED
+
+- **File**: `experiments/full_method_comparison.py`
+- **Goal**: Compare all training methods on sine: GSA vs Single SA vs Original GA vs Backprop
+- **Key Question**: Is saturation a feature of evolutionary training or an artifact of single-chain SA?
+
+**Results (3 trials each, H=8, K=2, 33 params):**
+
+| Method | MSE (mean) | MSE (best) | Saturation | W1_max |
+|--------|------------|------------|------------|--------|
+| Backprop | **0.000041** | 0.000036 | 0.6% | 1.53 |
+| GSA | 0.000089 | 0.000069 | 0.2% | 1.13 |
+| Original GA | 0.000219 | 0.000187 | 1.0% | 1.36 |
+| Single SA | 0.002187 | 0.001488 | **38.7%** | 2.34 |
+
+**Key Findings:**
+
+1. **Saturation is training-method specific, not problem-specific**
+   - Single SA: 38.7% saturation with large weights (W1_max=2.34)
+   - GSA, Original GA, Backprop: All <2% saturation with moderate weights
+
+2. **GSA is 24.6x more accurate than Single SA**
+   - Population diversity prevents the weight explosion that causes saturation
+
+3. **Original GA also keeps saturation low (1%)**
+   - Random genome injection helps prevent saturation
+
+4. **The "emergent hybrid computation" narrative needs revision**
+   - Saturation was an artifact of single-chain SA's tendency to grow large weights
+   - Not a fundamental property of gradient-free/evolutionary training
+
+**Why Single SA produces saturation:**
+- Single chain can drift to large weight magnitudes without population diversity to correct
+- Large weights → saturated activations (tanh clipping)
+- No mechanism to favor smaller, more generalizable weights
+
+**Why GSA/GA prevent saturation:**
+- Population diversity maintains pressure toward moderate weights
+- Selection favors networks that generalize, not just fit training data
+- Roulette/elite selection implicitly regularizes weight magnitudes
+
+---
+
+### Experiment 25: High-Dimensional GSA Comparison
+
+- **File**: `experiments/highdim_gsa.py`
+- **Goal**: Repeat Experiment 16 with GSA to see if it improves on single SA
+- **Config**: 1000 features, 10 true (1% signal), H=8, K=4, 3 trials
+
+**Results:**
+
+| Method | MSE (mean) | MSE (best) | True Found | Params |
+|--------|------------|------------|------------|--------|
+| GSA | 0.077 | 0.075 | 7.0/10 | 49 |
+| Single SA | 0.078 | 0.075 | 6.7/10 | 49 |
+| Dense Backprop | 0.640 | 0.640 | N/A | 8017 |
+
+**Key Findings:**
+
+1. **GSA and Single SA perform similarly** (~1.0x ratio) on high-dim problems
+2. **Both are 8.3x better than backprop** on accuracy
+3. **Both use 163x fewer parameters**
+4. **Feature selection works**: Top 7 true features (0-6) found in all trials
+
+**Why GSA didn't improve over SA here:**
+- Single SA already excels at high-dim feature selection
+- Dense backprop completely fails (predicts mean) due to overparameterization
+- The evolvable indices mechanism is the key - both methods use it
+
+**Confirmation**: Evolvable indices (the core GENREG mechanism) are active:
+- Fixed K=4 constraint per neuron
+- Index mutations with 10% rate
+- 32 total connections must select from 1000 features
+
+---
+
+## Where SA/GSA Outperformed Backprop
+
+### 1. High-Dimensional Scaling (Experiment 16) ⭐ STRONGEST RESULT
+
+**Problem**: 1000 features, 10 true (1% signal density)
+
+| Method | MSE | Params | Winner |
+|--------|-----|--------|--------|
+| **Ultra-Sparse SA** | **0.1112** | **49** | ✅ Both |
+| Dense Backprop | 0.6367 | 8017 | ❌ Failed |
+
+**SA wins 5.7x on accuracy AND 164x on efficiency!**
+
+Dense backprop fails catastrophically when features >> samples. It just predicts the mean. SA's evolvable indices enable automatic feature selection.
+
+### 2. Same-Architecture Comparison (Experiment 15) ⭐ FAIR COMPARISON
+
+**Problem**: Friedman1 (100 features, 5 true)
+
+| Method | MSE | Params | Feature Selection |
+|--------|-----|--------|-------------------|
+| **Ultra-Sparse SA** | **0.1215** | **49** | YES - finds all 5 |
+| Sparse Backprop | 0.4497 | 49 | NO - random stuck |
+
+**SA wins 3.7x with identical architecture!**
+
+When both use the same sparse architecture (49 params), SA's ability to mutate indices gives it a massive advantage. Backprop is stuck with whatever random indices it starts with.
+
+### 3. Extended Training (Experiment 14)
+
+**Problem**: Sine with random sparse indices
+
+| Method | Mean MSE | Std MSE |
+|--------|----------|---------|
+| **Ultra-Sparse SA** | **0.000365** | 0.000187 |
+| Sparse Backprop | 0.048049 | 0.064935 |
+
+**SA wins 130x on mean MSE!**
+
+Backprop's variance is 350x higher because it can't escape bad random indices.
+
+### Summary: When SA/GSA Beats Backprop
+
+| Scenario | SA Advantage | Mechanism |
+|----------|--------------|-----------|
+| **High-dimensional (features >> samples)** | 5.7x accuracy | Automatic feature selection |
+| **Same sparse architecture** | 3.7x accuracy | Evolvable indices |
+| **Random sparse indices** | 130x consistency | Can escape bad initializations |
+
+### When Backprop Still Wins
+
+| Scenario | Backprop Advantage |
+|----------|-------------------|
+| **Low-dimensional, all features matter** | 2-100x better MSE |
+| **Dense architectures** | Better optimization |
+| **Maximum accuracy required** | Gradient precision |
+
+---
+
 ## Next Steps
 
 1. **Test on more benchmarks**: Friedman2, Friedman3, UCI datasets
