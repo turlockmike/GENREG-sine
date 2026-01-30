@@ -15,7 +15,7 @@ The key mechanism: fixed K inputs per neuron + evolvable indices creates selecti
 | Sine (256→16) | 0.000121 MSE, 33 params | 0.000003 MSE, 2065 params | 63x fewer params |
 | Friedman1 (100→5) | 0.12 MSE, 49 params | 0.09 MSE, 817 params | 3.7x better than sparse BP |
 | **High-Dim (1000→10)** | **0.11 MSE, 49 params** | **0.64 MSE, 8017 params** | **5.7x better accuracy + 164x fewer params** |
-| **Digits (64→10 classes)** | **87.2% acc, 1738 params** | **97.0% acc, 8970 params** | **5.2x fewer params** (GSA) |
+| **Digits (64→10 classes)** | **88.1% acc, 618 params** | **97.0% acc, 8970 params** | **14.5x fewer params** (Arch Search) |
 
 ### Ablation Study Results ⭐
 
@@ -34,9 +34,9 @@ The key mechanism: fixed K inputs per neuron + evolvable indices creates selecti
 |---------|--------|-------|------------|
 | Breast Cancer | 95.9% | 97.1% | **108x fewer params** |
 | Wine | 97.2% | 100% | **78x fewer params** |
-| Digits | 87.2%* | 97.0% | **5.2x fewer params** |
+| Digits | 88.1%* | 97.0% | **14.5x fewer params** |
 
-*Using GSA (population-based SA). Single SA achieves only 64.7%.
+*Using architecture search (H=32, K=8, L=1). Previous GSA achieved 87.2%.
 
 ### When Ultra-Sparse Wins
 
@@ -576,6 +576,56 @@ This validates the efficiency hypothesis: **Ultra-Sparse + SA scales better than
 3. **Sweet spot**: Problems with <5 classes and moderate feature count
 
 **Conclusion**: GENREG is viable for real-world classification when efficiency matters more than the last few % of accuracy.
+
+### Experiment 20: Architecture Search (H, K, L, mutation rates) ⭐ OPTIMIZED
+
+- **File**: `experiments/arch_search.py`
+- **Goal**: Find optimal architecture by searching over H, K, L, index_swap_rate, weight_rate
+- **Method**: Two-phase evolutionary search with early stopping
+
+**Search Space:**
+```
+H ∈ [32, 64, 128]           # Hidden size
+K ∈ [8, 16, 32]             # Inputs per neuron
+L ∈ [1, 2, 3]               # Hidden layers
+index_swap_rate ∈ [0.05, 0.1, 0.2]
+weight_rate ∈ [0.1, 0.15, 0.25]
+```
+
+**Results (15 min total, 12 parallel workers):**
+
+| Rank | Accuracy | Params | H | K | L | index_swap | weight_rate |
+|------|----------|--------|---|---|---|------------|-------------|
+| 🏆 1 | **88.1%** | **618** | 32 | 8 | 1 | 0.2 | 0.1 |
+| 2 | 87.2% | 1226 | 64 | 8 | 1 | 0.05 | 0.15 |
+| 3 | 86.4% | 1226 | 64 | 8 | 1 | 0.1 | 0.1 |
+| 4 | 86.4% | 2442 | 128 | 8 | 1 | 0.05 | 0.1 |
+| 5 | 77.8% | 1738 | 64 | 16 | 1 | 0.2 | 0.15 |
+
+**Key Discoveries:**
+
+1. **Shallow wins**: L=1 dominated across all configs. L=3 consistently failed (21-62%).
+
+2. **Sparse wins**: K=8 >> K=16 >> K=32. Lower K = stronger selection pressure.
+
+3. **Smaller is better**: H=32 beat H=64 and H=128 for this problem.
+
+4. **Optimal config**: H=32, K=8, L=1 achieves **88.1% with only 618 parameters**.
+
+**Biological Parallel Confirmed:**
+> "Like ant brains - small, sparse, shallow. Evolution under resource constraints finds efficient specialized circuits, not large general-purpose networks."
+
+**Comparison to Previous Results:**
+
+| Method | Accuracy | Params | Improvement |
+|--------|----------|--------|-------------|
+| Dense Backprop | 97.0% | 8970 | baseline |
+| GSA (H=64, K=16) | 87.2% | 1738 | 5.2x fewer params |
+| **Arch Search Winner** | **88.1%** | **618** | **14.5x fewer params** |
+
+**Conclusion**: Architecture search found a configuration that is both more accurate AND more efficient than our previous best. The optimal GENREG network for digits is surprisingly small: 32 hidden neurons, 8 inputs each, single layer.
+
+---
 
 ### Experiment 19: Genetic Simulated Annealing for Digits ⭐ BREAKTHROUGH
 - **File**: `experiments/gsa_digits.py`
