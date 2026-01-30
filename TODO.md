@@ -168,7 +168,28 @@ for iteration in range(iterations):
 
 ---
 
-### 2. Solve Digits (10-class classification)
+### 2. Extended Training on Optimal Config (K=4, 5000 generations)
+**Question**: How far can we push accuracy with much longer training on the sweet spot config?
+
+**Current status**:
+- H=32, K=4, 300 gens → **85.6%** (490 params)
+- H=32, K=4, 500 gens → Not yet tested
+
+**Experiment**: Run H=32, K=4 with 5000 generations (10x current)
+- Track learning curve - does it plateau or keep improving?
+- Compare to K=2 with same compute budget
+- Measure final saturation levels
+
+**Expected insights**:
+- Is 85-86% the asymptotic limit for this architecture?
+- Does extended training increase or decrease saturation?
+- Worth the 10x compute cost?
+
+**File to create**: `experiments/very_extended_training.py`
+
+---
+
+### 3. Solve Digits (10-class classification)
 **Question**: What does GENREG need to achieve >90% on digits?
 
 **Current status**: H=32, K=8 → 64.7% (vs Dense 97%)
@@ -181,34 +202,52 @@ for iteration in range(iterations):
 
 ---
 
-### 3. Selection Pressure vs K (inputs per neuron)
+### 4. Selection Pressure vs K (inputs per neuron) ✅ TESTED
 **Question**: How does the number of inputs per neuron (K) affect selection pressure and accuracy?
 
-**Hypothesis**: Smaller K = stronger selection pressure but potentially lower accuracy due to limited expressiveness. There's likely an optimal K for each problem complexity.
+**Results from extreme_sparsity.py** (500 generations, digits dataset):
 
-**Experiment Design**:
-- Fix problem: 1000 features, 10 true
-- Fix hidden size: 8 neurons
-- Vary K: 1, 2, 3, 4, 6, 8, 16, 32
-- Measure: MSE, feature selection recall, selection factor
+| Config | Params | Mean Acc | Coverage | vs K=4 |
+|--------|--------|----------|----------|--------|
+| K=1, H=32 | 394 | 74.2% | 41% | -11.4% |
+| **K=2, H=32** | **426** | **81.5%** | 63% | **-4.1%** |
+| K=1, H=64 | 778 | 63.6% | 65% | -22.0% |
+| K=2, H=64 | 842 | 77.9% | 84% | -7.7% |
 
-**Expected Insights**:
-- K=1: Maximum pressure, but can each neuron only see one input?
-- K=2: High pressure (early experiments showed 6x selection factor)
-- K=4: Current default, moderate pressure
-- K=8+: Approaches dense behavior, selection pressure diminishes
+**Key Findings**:
+1. **K=2 is viable**: Only 4% below K=4 with 13% fewer params
+2. **K=1 hits a wall**: ~74% max - single-input neurons too limited
+3. **Bigger H doesn't help extreme sparsity**: H=64 worse than H=32 at both K=1 and K=2
+4. **Coverage scales with K**: K=1→41%, K=2→63%, K=4→~80%
 
-**Key Metric**: Selection Factor = (true features found / total connections) / (true features / total features)
+**Conclusion**: K=4 remains sweet spot, but K=2 offers good efficiency tradeoff
 
 ---
 
-### 4. Deeper Networks
-**Question**: Does layer-wise sparsity compound the selection advantage?
+### 5. Deeper Networks with Low H
+**Question**: Can depth compensate for width? Does a narrow-deep network outperform wide-shallow?
+
+**Motivation**:
+- Previous results: H=32 beats H=64 (smaller is better for fixed K)
+- But what about H=16 or H=8 with 2-3 layers?
+- Biological parallel: cortical columns are deep and narrow
 
 **Experiment Design**:
-- Architecture: Input → Sparse(8×4) → Sparse(8×4) → Output
-- Compare: 1-layer vs 2-layer vs 3-layer
-- Same total params budget
+```
+Compare at ~500 params budget:
+- Wide-shallow: H=32, K=4, L=1  (490 params) - current best: 85.6%
+- Narrow-deep:  H=16, K=4, L=2  (~similar params)
+- Very narrow:  H=8,  K=4, L=3  (~similar params)
+```
+
+**Key Questions**:
+1. Does depth help information flow with extreme sparsity?
+2. Do deeper layers develop different specializations?
+3. Is there a depth where GSA struggles to optimize?
+
+**Previous arch_search finding**: L=1 dominated, but that was with larger H. Small H + deep might be different.
+
+**File to create**: `experiments/narrow_deep.py`
 
 ---
 

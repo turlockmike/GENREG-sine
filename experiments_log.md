@@ -15,7 +15,7 @@ The key mechanism: fixed K inputs per neuron + evolvable indices creates selecti
 | Sine (256→16) | 0.000121 MSE, 33 params | 0.000003 MSE, 2065 params | 63x fewer params |
 | Friedman1 (100→5) | 0.12 MSE, 49 params | 0.09 MSE, 817 params | 3.7x better than sparse BP |
 | **High-Dim (1000→10)** | **0.11 MSE, 49 params** | **0.64 MSE, 8017 params** | **5.7x better accuracy + 164x fewer params** |
-| **Digits (64→10 classes)** | **84.4% acc, 490 params** | **97.0% acc, 8970 params** | **18x fewer params** (H=32, K=4) |
+| **Digits (64→10 classes)** | **85.6% acc, 490 params** | **97.0% acc, 8970 params** | **18x fewer params** (H=32, K=4, 300 gens) |
 
 ### Ablation Study Results ⭐
 
@@ -36,7 +36,7 @@ The key mechanism: fixed K inputs per neuron + evolvable indices creates selecti
 | Wine | 97.2% | 100% | **78x fewer params** |
 | Digits | 88.1%* | 97.0% | **14.5x fewer params** |
 
-*Using architecture search (H=32, K=8, L=1). Previous GSA achieved 87.2%.
+*H=32, K=8, L=1. Extended training with H=32, K=4 achieves 85.6% with only 490 params (18x fewer).
 
 ### When Ultra-Sparse Wins
 
@@ -74,6 +74,7 @@ GENREG-sine/
 │   ├── ultra_sparse.py      # ⭐ Breakthrough experiment
 │   ├── comprehensive_benchmark.py
 │   ├── inference_engines.py # Engine comparison
+│   ├── extended_training.py # Extended training on optimal config
 │   └── experiment_*.py      # Other experiments
 ├── models/                  # Trained model checkpoints
 │   ├── ultra_sparse_mse0.000303.pt
@@ -734,6 +735,97 @@ Gen 299: 87.2% (final)
 - Both show population + selection beats single chain
 
 **Conclusion**: GSA significantly improves GENREG's ability to handle harder problems (10-class classification). While still 10% below dense backprop accuracy, GSA achieves this with 5.2x fewer parameters and demonstrates that population-based approaches can unlock harder problems.
+
+---
+
+### Experiment 23: Extreme Sparsity (K=1, K=2) ⭐ LIMITS FOUND
+
+- **File**: `experiments/extreme_sparsity.py`
+- **Goal**: Test how far we can push sparsity - does K=1 or K=2 work?
+- **Config**: 500 generations, pop=50, 2 trials each
+
+**Results:**
+
+| Config | Params | Mean Acc | Best Acc | Coverage | vs K=4 Baseline |
+|--------|--------|----------|----------|----------|-----------------|
+| K=1, H=32 | 394 | 74.2% | 75.3% | 41% | -11.4% |
+| **K=2, H=32** | **426** | **81.5%** | **81.7%** | 63% | **-4.1%** |
+| K=1, H=64 | 778 | 63.6% | 66.7% | 65% | -22.0% |
+| K=2, H=64 | 842 | 77.9% | 81.1% | 84% | -7.7% |
+
+**Key Findings:**
+
+1. **K=2 is surprisingly effective**: Only 4% below K=4 baseline with 13% fewer params (426 vs 490)
+
+2. **K=1 hits fundamental limits**: ~74% accuracy ceiling. Each neuron as a single-input specialist can't capture digit structure.
+
+3. **Bigger H doesn't compensate**: H=64 performs *worse* than H=32 at both K=1 and K=2. More neurons ≠ better when each sees too few inputs.
+
+4. **Feature coverage scales with K**:
+   - K=1: 41% of inputs used
+   - K=2: 63% of inputs used
+   - K=4: ~80% of inputs used (from previous experiments)
+
+5. **Training curves show K=1 plateaus**: K=1 converged by gen 300, while K=2 kept improving through gen 500.
+
+**Biological Insight**: Like neurons in C. elegans (302 neurons), there's a minimum connectivity for useful computation. K=1 neurons are too specialized - they can detect one feature but can't combine information.
+
+**Conclusion**: K=4 remains the sweet spot for digits. K=2 offers a good tradeoff if maximum efficiency is needed. K=1 is too extreme.
+
+---
+
+### Experiment 22: Extended Training on Optimal Config ⭐ STABILITY CONFIRMED
+
+- **File**: `experiments/extended_training.py`
+- **Goal**: Push the optimal H=32, K=4 config further with extended training
+- **Config**: 300 generations, pop=50, 3 trials with different seeds
+
+**Results:**
+
+| Trial | Seed | Final Accuracy | Training Progression |
+|-------|------|---------------|---------------------|
+| 1 | 0 | 85.0% | 10.6% → 66.7% → 85.0% |
+| 2 | 1000 | 85.0% | 11.7% → 65.8% → 85.0% |
+| 3 | 2000 | **86.7%** | 17.8% → 67.2% → 86.7% |
+
+**Summary Statistics:**
+- Mean: **85.6%**
+- Std: **0.8%**
+- Best: **86.7%**
+- Parameters: **490** (18x fewer than dense backprop)
+- Training time: ~74 seconds per trial
+
+**Training Curve (300 generations):**
+```
+Gen     Trial 1  Trial 2  Trial 3
+  0:    10.6%    11.7%    17.8%
+ 50:    45.6%    53.1%    53.3%
+100:    66.7%    65.8%    67.2%
+150:    78.3%    73.1%    76.7%
+200:    81.4%    81.4%    81.1%
+250:    84.2%    85.6%    83.6%
+299:    85.0%    85.0%    86.7%
+```
+
+**Key Findings:**
+
+1. **Consistent performance**: Low variance (0.8%) across different seeds confirms robustness
+
+2. **Stable training**: All trials converge smoothly without erratic jumps
+
+3. **Extended training helps**: 300 gens (85.6%) > 150 gens (84.4%) - modest but real improvement
+
+4. **Optimal config confirmed**: H=32, K=4 remains the best balance of accuracy and efficiency
+
+**Comparison to Other Approaches:**
+
+| Config | Accuracy | Params | Efficiency |
+|--------|----------|--------|------------|
+| H=32, K=4, 300 gens | **85.6%** | **490** | **0.17%/100p** |
+| H=32, K=8, 200 gens | 88.1% | 618 | 0.14%/100p |
+| Dense Backprop | 97.0% | 8970 | 0.01%/100p |
+
+**Biological Insight**: The consistent performance across seeds suggests the H=32, K=4 architecture has found a stable attractor in the loss landscape. Like biological neural circuits, the sparse constraint creates robust, reproducible solutions rather than fragile optima.
 
 ---
 

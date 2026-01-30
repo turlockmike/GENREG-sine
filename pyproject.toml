@@ -1,0 +1,41 @@
+[project]
+name = "genreg"
+version = "0.1.0"
+description = "Gradient-free Evolutionary Regression with Ultra-Sparse Connectivity"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "torch>=2.0",
+    "numpy>=1.24",
+    "scikit-learn>=1.3",
+    "matplotlib>=3.7",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "black>=23.0",
+    "ruff>=0.1",
+]
+rl = [
+    "gymnasium>=0.29",
+]
+
+[project.scripts]
+genreg-search = "experiments.arch_search:run_search"
+genreg-benchmark = "experiments.sklearn_benchmarks:run_all_benchmarks"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["core", "experiments", "problems"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
+ignore = ["E501"]
