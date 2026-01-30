@@ -1,9 +1,27 @@
 """
-Experiment: Extreme Sparsity (K=1, K=2)
+Experiment 20: Extreme Sparsity (K=1, K=2) on Digits Classification
 
-Test whether even more constrained architectures can work with extended training.
-Hypothesis: With K=1 or K=2, each neuron becomes a specialist on 1-2 inputs.
-This is the "ant brain" limit - maximum selection pressure.
+Problem: Digits classification (64 features, 10 classes) with minimal connectivity
+Question: Can K=1 or K=2 work with extended training and larger hidden layers?
+
+Key Findings - Near-baseline with extreme sparsity:
+- H=32, K=1: 78.9% accuracy, 362 params (specialist neurons)
+- H=32, K=2: 83.1% accuracy, 394 params
+- H=64, K=1: 80.8% accuracy, 714 params
+- H=64, K=2: 85.3% accuracy, 778 params
+- Baseline (H=32, K=4): 85.6% accuracy, 490 params
+
+Why this matters:
+- Each neuron becomes a "specialist" on 1-2 features
+- Maximum selection pressure with minimal parameters
+- Width (H) compensates for extreme sparsity (K)
+
+Uses GSA (Genetic Simulated Annealing) with 500 generations for extended training.
+
+References:
+- Results: results/extreme_sparsity/
+- Log: docs/experiments_log.md (Experiment 20)
+- Related: experiments/gsa_digits.py (standard GSA on digits)
 """
 
 import sys

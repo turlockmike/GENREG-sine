@@ -1,7 +1,7 @@
 """
-Experiment: Ablation Study - Proving Each Component is Necessary
+Experiment 17: Ablation Study - Proving Each Component is Necessary
 
-This is the CRITICAL experiment to prove GENREG's novelty.
+Problem: 1000 features, 10 true (1% signal). Prove USEN's three components are essential.
 
 Hypothesis: Fixed-K + evolvable indices + SA creates selection pressure
 that no single component alone can achieve.
@@ -13,11 +13,16 @@ Variants tested:
 4. Backprop Weights: Fixed K=4 + Frozen Indices + Backprop Weights
 5. Weak Constraint:  Fixed K=32 + Evolvable Indices + SA Weights
 
-Expected Results:
-- Full GENREG: Best selection (fitness-guided evolution finds true features)
-- Frozen Indices: Poor selection (stuck with random initial indices)
-- Random Regrowth: Moderate (some exploration, but not guided)
-- Backprop Weights: Poor selection (backprop can't escape bad indices)
+Key Findings - ALL COMPONENTS PROVEN ESSENTIAL:
+- Full USEN: 25x random selection factor (baseline)
+- No index evolution: 10x worse
+- Random regrowth (SET-style): 13x worse
+- Weak K (K=32): 6.5x worse
+
+References:
+- Results: results/ablation_study/
+- Log: docs/experiments_log.md (Experiment 17)
+- Summary: docs/SUMMARY_Ultra_Sparse_Evolvable_Networks.md
 - Weak Constraint: Weak selection (K=32 approaches dense behavior)
 
 If Full GENREG >> Frozen Indices, we prove evolvable indices matter.

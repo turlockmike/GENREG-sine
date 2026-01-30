@@ -1,12 +1,22 @@
 """
-Experiment: Full Training Method Comparison
-Compares GSA vs Single-chain SA vs Original GA vs Backprop
+Experiment 24: Full Training Method Comparison
 
-Metrics:
-- Accuracy (MSE)
-- Efficiency (parameter count)
-- Saturation (% neurons |activation| > 0.95)
-- Weight magnitudes
+Problem: Compare all training methods on sine: GSA vs Single SA vs Original GA vs Backprop
+Question: Is saturation a fundamental property of evolutionary training?
+
+Key Finding: SATURATION IS AN ARTIFACT OF SINGLE-CHAIN SA
+- Single SA: 38.7% saturation, MSE=0.0022
+- GSA: 0.2% saturation, MSE=0.00009 (24x better)
+- Original GA: 1.0% saturation
+- Backprop: 0.6% saturation
+
+Implication: The "emergent hybrid computation" narrative needs revision.
+Population diversity prevents weight explosion that causes saturation.
+
+References:
+- Results: results/full_method_comparison/
+- Log: docs/experiments_log.md (Experiment 24)
+- Summary: docs/SUMMARY_Ultra_Sparse_Evolvable_Networks.md
 """
 
 import sys

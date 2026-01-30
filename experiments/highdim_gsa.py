@@ -1,10 +1,23 @@
 """
-Experiment: High-Dimensional Scaling with GSA
+Experiment 25: High-Dimensional Scaling with GSA
 
-Repeating Experiment 16 with GSA instead of single-chain SA.
-Question: Does GSA improve on the already-impressive high-dim results?
+Problem: 1000 features, only 10 true (1% signal density)
+Question: Does GSA improve on single SA for high-dim feature selection?
 
-Original SA results: 0.11 MSE (5.7x better than backprop's 0.64)
+Key Findings:
+- GSA and SA perform similarly (~0.077 MSE) on high-dim
+- Both are 8.3x better than backprop (0.64 MSE)
+- Both use 163x fewer params (49 vs 8017)
+- Feature selection works: 7/10 true features found consistently
+
+Conclusion: Evolvable indices are the key mechanism, not GSA vs SA.
+Both methods crush backprop on high-dimensional problems.
+
+References:
+- Results: results/highdim_gsa/
+- Log: docs/experiments_log.md (Experiment 25)
+- Related: experiments/highdim_scaling.py (original SA version)
+- Uses: usen.SparseNet, usen.train_gsa
 """
 
 import sys

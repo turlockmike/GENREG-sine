@@ -1,20 +1,23 @@
 """
-Experiment: Friedman1 Benchmark - Ultra-Sparse SA vs Sparse Backprop vs Dense Backprop
+Experiment 15: Friedman1 Benchmark - SA vs Backprop (Same Architecture)
 
-Friedman #1 is a classic ML benchmark:
+Problem: Friedman #1 - 100 features, only 5 true (classic ML benchmark)
     y = 10*sin(π*x₁*x₂) + 20*(x₃ - 0.5)² + 10*x₄ + 5*x₅ + noise
 
-Features:
-- x₁, x₂: Interact nonlinearly (sin of product)
-- x₃: Quadratic term
-- x₄: Linear term (weight 10)
-- x₅: Linear term (weight 5)
-- x₆...x₁₀₀: Noise features
+Question: With identical 49-param architecture, does SA beat backprop?
 
-This experiment compares:
-1. Ultra-Sparse SA: 49 params, evolves which inputs to use
-2. Sparse Backprop: 49 params, random fixed inputs
-3. Dense Backprop: 817 params, uses all inputs
+Key Findings - SA WINS 3.7x ON SAME ARCHITECTURE:
+- Ultra-Sparse SA: MSE=0.12, finds ALL 5 true features (100% recall)
+- Sparse Backprop: MSE=0.45, finds ~1.4/5 (random chance)
+- Dense Backprop: MSE=0.09, uses all 100 features (17x more params)
+
+Conclusion: SA's evolvable indices enable feature discovery that backprop cannot achieve.
+Backprop is stuck with whatever random indices it starts with.
+
+References:
+- Results: results/friedman1_comparison/
+- Log: docs/experiments_log.md (Experiment 15)
+- Related: experiments/highdim_scaling.py (1000 features version)
 """
 
 import sys

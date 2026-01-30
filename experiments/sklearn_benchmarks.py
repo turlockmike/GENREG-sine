@@ -1,20 +1,27 @@
 """
-Experiment: sklearn Benchmarks - GENREG vs Dense Backprop on Real Data
+Experiment 18: sklearn Benchmarks - USEN vs Dense Backprop on Real Data
 
-Goal: Find problems where backprop achieves high accuracy with expensive networks,
-      and test if GENREG can match accuracy with fewer params.
+Problem: Standard ML datasets - can USEN match backprop with fewer params?
+Question: Does the USEN advantage generalize beyond sine approximation?
 
-Datasets:
-1. Breast Cancer - 30 features, binary classification, ~95% accuracy
-2. Digits - 64 features, 10-class classification, ~97% accuracy
-3. California Housing - 8 features, regression, R²~0.8
-4. Covtype - 54 features, 7-class classification, ~95% accuracy
+Key Findings - Near-backprop accuracy with massive param reduction:
+- Breast Cancer (30 features, binary): 95.9% vs 97.1% (108x fewer params)
+- Wine (13 features, 3-class): 97.2% vs 100% (78x fewer params)
+- Digits (64 features, 10-class): 64.7% vs 97.0% (single SA fails here)
 
-For each dataset we compare:
-- Dense MLP (backprop): Standard architecture, full connectivity
-- Ultra-Sparse GENREG: K=4 inputs per neuron, SA training
+Note: For digits, use GSA (experiments/gsa_digits.py) which achieves 87.2%
+Single-chain SA struggles with 10-class problems.
 
-Success metric: Similar accuracy with 10-100x fewer params
+Datasets tested:
+1. Breast Cancer - 30 features, binary classification
+2. Wine - 13 features, 3-class classification
+3. Digits - 64 features, 10-class classification (requires GSA)
+
+References:
+- Results: results/sklearn_benchmarks/
+- Log: docs/experiments_log.md (Experiment 18)
+- Related: experiments/gsa_digits.py (87.2% on digits with GSA)
+- Summary: docs/SKLEARN_RESULTS.md
 """
 
 import sys

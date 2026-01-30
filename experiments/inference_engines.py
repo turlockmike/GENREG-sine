@@ -1,7 +1,27 @@
 """
-Experiment: Compare inference engines for Ultra-Sparse networks.
+Experiment 14: Inference Engine Comparison
 
-Tests different execution backends to find the fastest inference.
+Problem: PyTorch has significant overhead for small sparse networks
+Question: Can alternative backends (NumPy, Numba JIT) improve inference speed?
+
+Key Findings - Numba JIT is 60x faster than PyTorch:
+- PyTorch Ultra-Sparse: 26.5 μs (overhead dominates)
+- NumPy Ultra-Sparse: 2.1 μs (12x faster)
+- Numba Ultra-Sparse: 0.44 μs (60x faster than PyTorch)
+
+- PyTorch Dense: 3.1 μs
+- Numba Dense: 0.58-0.63 μs (5-6x faster)
+
+Key insight: Ultra-Sparse with Numba is faster than Dense with Numba (1.3-1.4x)
+because sparse models have fewer computations despite indexing overhead.
+
+Requires comprehensive_benchmark.py models to exist in results/.
+
+References:
+- Results: results/inference_engines/ (if exists)
+- Log: docs/experiments_log.md (Experiment 14)
+- Depends on: experiments/comprehensive_benchmark.py (for model files)
+- Models: models/README.md (Numba inference examples)
 """
 
 import sys

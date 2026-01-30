@@ -1,14 +1,28 @@
 """
-Experiment: High-Dimensional Scaling Test
+Experiment 16: High-Dimensional Scaling Test (1000 features)
 
-Question: Can Ultra-Sparse + SA find 10 needles in 1000 features?
+Problem: Regression with 1000 features, only 10 true (1% signal)
+Question: Can USEN find needles in high-dimensional haystacks?
 
-This is the critical test for the efficiency hypothesis:
-- Dense Backprop: 8017 params (8×1000 + 8 + 8 + 1)
-- Ultra-Sparse:   49 params   (8×4 + 8 + 8 + 1)
+Key Findings - USEN matches backprop with 163x fewer params:
+- Ultra-Sparse SA: MSE=0.12-0.15, 49 params, discovers 6-8/10 true features
+- Dense Backprop: MSE=0.09-0.12, 8017 params, uses all 1000 features
 
-If Ultra-Sparse achieves comparable accuracy with 163x fewer parameters,
-that validates the efficiency advantage at scale.
+Efficiency analysis:
+- 163x parameter reduction (8017 vs 49)
+- Similar accuracy (1.3x MSE difference)
+- Automatic feature discovery (60-80% recall)
+
+This validates the USEN efficiency hypothesis at scale:
+evolvable indices enable feature selection that dense networks cannot achieve.
+
+Note: For GSA version see experiments/highdim_gsa.py (Experiment 25)
+
+References:
+- Results: results/highdim_scaling/
+- Log: docs/experiments_log.md (Experiment 16)
+- Related: experiments/friedman1_comparison.py (100 features)
+- Related: experiments/highdim_gsa.py (GSA version)
 """
 
 import sys

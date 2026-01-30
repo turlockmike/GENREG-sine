@@ -1,7 +1,27 @@
 """
-Comprehensive Benchmark: Ultra-Sparse vs Standard SA vs Backprop
+Experiment 13: Comprehensive Benchmark (20 trials each)
 
-Trains each model 20 times, selects the best, and generates a full report.
+Problem: Sine approximation with 256 inputs (16 true + 240 noise)
+Question: With multiple trials, which method achieves best accuracy/efficiency?
+
+Key Findings - Ultra-Sparse wins on efficiency:
+- Ultra-Sparse SA: MSE=0.000303, 33 params, 37.5% true input selection
+- Standard SA: MSE=0.009155, 2065 params, no selection capability
+- Backprop: MSE=0.000003, 2065 params, best accuracy but 63x more params
+
+Ultra-Sparse achieves:
+- 30x better MSE than Standard SA (same training method)
+- 63x fewer parameters than dense methods
+- 6x better than random feature selection
+
+This benchmark established Ultra-Sparse as the best efficiency/accuracy tradeoff
+and produced the saved models in models/ directory.
+
+References:
+- Results: results/comprehensive_benchmark/
+- Report: results/comprehensive_benchmark/report.md
+- Models: models/ultra_sparse_mse0.000303.pt, models/standard_sa_mse0.009155.pt
+- Log: docs/experiments_log.md (Experiment 13)
 """
 
 import sys
