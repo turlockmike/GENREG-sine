@@ -107,6 +107,21 @@
   - 75% less memory
   - 170x more robust to noise (from Experiment 1)
 
+### Experiment 5: Neural Network Pruning
+- **File**: `experiment_pruning.py`
+- **Hypothesis**: We can prune useless neurons/weights like genetic gene deletion
+- **Result**: **MIXED** - Post-training pruning fails, but training with deletion works
+- **What didn't work**:
+  - Neuron pruning: Removing 2 neurons doubles MSE
+  - Weight pruning: 10% pruning doubles MSE, 20%+ destroys network
+  - L1 regularization: Only 0.3% sparsity achieved
+- **What worked**:
+  - Deletion mutations during training: MSE 0.0095 (better than regular SA's 0.021!)
+- **Key insight**: Can't prune a trained network - it's tightly coupled. But training
+  with deletion pressure from the start makes the network robust AND performs better.
+  Like evolution: organisms are robust to gene knockouts because deletions were tested
+  throughout development.
+
 ## Open Questions
 
 1. ~~Does saturation provide any advantage (robustness, interpretability)?~~ **YES - 170x more robust to noise**
