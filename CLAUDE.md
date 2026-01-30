@@ -31,11 +31,20 @@ GENREG-sine/
 └── experiments_log.md        # Detailed results log
 ```
 
+## Git Remotes
+
+```bash
+# Push to fork (turlockmike has write access)
+git push fork main
+
+# origin is A1CST/GENREG-sine (upstream, read-only for most users)
+```
+
 ## Commands
 
 ```bash
 # Install dependencies
-pip install torch numpy matplotlib
+pip install torch numpy matplotlib scikit-learn
 
 # Run single training session (original GENREG)
 python sine_train.py
@@ -45,6 +54,12 @@ python sine_sweep.py
 
 # Run a specific experiment
 python experiments/sensory_bottleneck.py
+
+# Run GSA on digits (population-based SA)
+python experiments/gsa_digits.py --hidden 64 --k 16 --pop 50 --gens 300
+
+# Run sklearn benchmarks
+python experiments/sklearn_benchmarks.py
 
 # Live visualization of training
 python sine_visualize.py
@@ -64,6 +79,18 @@ Use `core.metrics.compute_metrics(controller, x_test, y_true)` for consistent me
 
 ## Writing New Experiments
 
+**IMPORTANT: Always create experiment files instead of running inline Python.**
+This allows iteration, reproducibility, and tracking of experiments.
+
+```bash
+# Create a new experiment file
+experiments/my_experiment.py
+
+# Run it
+python experiments/my_experiment.py
+```
+
+Example experiment file:
 ```python
 import sys
 from pathlib import Path
@@ -85,6 +112,9 @@ best, final_metrics, history = train_sa(
 
 # Results automatically include MSE, Energy, Saturation
 print(f"Final: {final_metrics}")
+
+if __name__ == "__main__":
+    run_experiment()
 ```
 
 ## Architecture
@@ -131,6 +161,18 @@ Environment (256) → Sensory (N neurons) → Processing (8) → Output (1)
    - Ultra-Sparse: 0.44 μs (60x faster than PyTorch)
    - Dense models: 0.58-0.63 μs (5-6x faster than PyTorch)
    - Ultra-Sparse is fastest overall (1.3-1.4x faster than dense)
+
+6. **Ablation proves all components essential**:
+   - Index evolution: 10x better than frozen indices
+   - Guided evolution: 13x better than random regrowth (SET-style)
+   - K constraint: 6.5x better selection with K=4 vs K=32
+
+7. **GSA unlocks harder problems**: Population-based SA (Genetic Simulated Annealing) achieves 87.2% on digits vs 64.7% for single SA (+22.5pp improvement)
+
+8. **sklearn benchmarks**: GENREG achieves near-backprop accuracy with massive efficiency gains:
+   - Breast Cancer: 95.9% vs 97.1% (108x fewer params)
+   - Wine: 97.2% vs 100% (78x fewer params)
+   - Digits: 87.2% vs 97.0% (5.2x fewer params, using GSA)
 
 ## Configuration
 

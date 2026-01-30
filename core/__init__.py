@@ -19,8 +19,12 @@ Example usage:
 
 from .metrics import compute_metrics, Metrics, print_metrics, format_metrics_table
 from .training import train_sa, train_hillclimb, train_ga
+from .models import UltraSparseController, DenseController
 
 __all__ = [
+    # Models
+    'UltraSparseController',
+    'DenseController',
     # Metrics
     'compute_metrics',
     'Metrics',
