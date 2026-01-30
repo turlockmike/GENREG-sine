@@ -1,0 +1,27 @@
+{
+  "test_id": "H4",
+  "task": "sine",
+  "true_signal": 16,
+  "noise_dims": 240,
+  "hidden_size": 32,
+  "compression_ratio": 8,
+  "population_size": 40,
+  "final_mse_mean": 0.03722873330116272,
+  "final_mse_std": 0.0,
+  "final_k_mlp_mean": 21.0,
+  "final_k_mlp_std": 0.0,
+  "final_k_ratio_mean": 0.65625,
+  "final_k_ratio_std": 0.0,
+  "n_seeds": 1,
+  "k_ratio_variance": 0,
+  "k_ratio_range": 0,
+  "threshold_sensitivity": {
+    "0.95": {
+      "k_ratio_mean": 0.65625,
+      "k_ratio_std": 0
+    }
+  },
+  "hypothesis": "k << 32? excess capacity",
+  "theory_prediction": "high_k",
+  "theory_validated": true
+}

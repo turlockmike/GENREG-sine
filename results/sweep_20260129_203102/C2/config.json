@@ -1,0 +1,14 @@
+{
+  "test_id": "C2",
+  "true_signal": 64,
+  "noise_dims": 0,
+  "hidden_size": 8,
+  "hypothesis": "k \u2248 0 (still no noise)",
+  "task": "sine",
+  "saturation_thresholds": [
+    0.95
+  ],
+  "seeds": [
+    42
+  ]
+}

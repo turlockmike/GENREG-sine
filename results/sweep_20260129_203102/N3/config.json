@@ -1,0 +1,14 @@
+{
+  "test_id": "N3",
+  "true_signal": 16,
+  "noise_dims": 112,
+  "hidden_size": 8,
+  "hypothesis": "k moderate-high",
+  "task": "sine",
+  "saturation_thresholds": [
+    0.95
+  ],
+  "seeds": [
+    42
+  ]
+}

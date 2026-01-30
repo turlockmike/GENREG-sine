@@ -1,0 +1,26 @@
+{
+  "sep-CMA-ES": {
+    "mse": 0.02471422217786312,
+    "k": 8,
+    "k_ratio": 1.0,
+    "time": 6.995884895324707,
+    "evaluations": 20020,
+    "final_sigma": 0.002160989497768233
+  },
+  "VD-CMA": {
+    "mse": 0.07392953336238861,
+    "k": 8,
+    "k_ratio": 1.0,
+    "time": 328.19176602363586,
+    "evaluations": 20020,
+    "final_sigma": 0.3592255593938497
+  },
+  "standard-CMA-ES": {
+    "mse": 0.067,
+    "k": 8,
+    "k_ratio": 1.0,
+    "time": 100.7,
+    "evaluations": 20000,
+    "note": "From previous experiment"
+  }
+}
