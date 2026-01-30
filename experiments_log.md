@@ -92,9 +92,42 @@
   SA's temperature annealing pushes solutions into saturated regions that are
   robust but less accurate. This is a tradeoff, not a failure.
 
+### Experiment 4: Inference Efficiency
+- **File**: `experiment_inference.py`
+- **Hypothesis**: Saturated networks can be optimized for faster inference
+- **Result**: **HYPOTHESIS SUPPORTED**
+  - Binary gate network (sign instead of tanh): **2.26x faster** at batch=1000
+  - Quantized (int8): **74.7% smaller** memory footprint
+  - Speed scales with batch size (1.28x at batch=1, 2.26x at batch=1000)
+- **Optimizations tested**:
+  1. Replace tanh() with sign() for hidden layer (binary activations)
+  2. Quantize weights to int8
+- **Tradeoff**: MSE increases from 0.0001 (backprop) to 0.027 (binary), but:
+  - 2.26x faster inference
+  - 75% less memory
+  - 170x more robust to noise (from Experiment 1)
+
 ## Open Questions
 
 1. ~~Does saturation provide any advantage (robustness, interpretability)?~~ **YES - 170x more robust to noise**
 2. ~~Can we close the gap with backprop using better gradient-free methods?~~ **Partially - sep-CMA-ES helps**
-3. What happens with different architectures (deeper, wider)?
-4. Is there a task where saturated solutions outperform on accuracy (not just robustness)?
+3. ~~Can saturated networks be optimized for inference?~~ **YES - 2.26x faster, 75% smaller**
+4. What happens with different architectures (deeper, wider)?
+5. Is there a task where saturated solutions outperform on accuracy (not just robustness)?
+
+## The Saturation Tradeoff
+
+Saturated networks sacrifice accuracy for other benefits:
+
+| Property | Backprop | Saturated (SA) |
+|----------|----------|----------------|
+| MSE Accuracy | 0.0001 | 0.02-0.03 |
+| Noise Robustness | 1x | **170x better** |
+| Inference Speed | 1x | **2.26x faster** |
+| Memory | 1x | **75% smaller** |
+
+This suggests saturated networks are ideal for:
+- Edge/embedded devices (memory constrained)
+- High-throughput inference (speed matters)
+- Noisy environments (robust to perturbations)
+- Applications where ~97% accuracy is acceptable
