@@ -15,11 +15,16 @@ When a network must attend to a subset of its inputs (filtering irrelevant dimen
 
 Standard deep learning uses massive networks because gradient descent requires smooth, high-dimensional landscapes to navigate. GENREG achieves comparable results with drastically smaller architectures:
 
-| Task | Standard Approach | GENREG |Justification|
-|------|-------------------|--------|---------------------------------|
-| Sine approximation | 64+ neurons | 8 neurons |  Yes I know gradients can probably do it with extreme fine tuning and drop out, I'm not saying they can't, I'm saying its difficult. |
-| Humanoid locomotion | 256+ neurons | 16 neurons | This model is currently training and has reached 3 meters, evolution is slow as to why this github is not available yet. current training has been runing for 18 hours as of this publication. |
-| Function approximation | Millions of params | Thousands of params |
+| Task | Standard Approach | GENREG | Justification |
+|------|-------------------|--------|---------------|
+| Sine approximation | 2065 params | **33 params** | Ultra-Sparse: 63x smaller, 30x better MSE than dense SA |
+| Humanoid locomotion | 256+ neurons | 16 neurons | Currently training |
+| Function approximation | Millions of params | Thousands of params | Hybrid computation |
+
+**NEW: Ultra-Sparse Breakthrough** - By limiting each neuron to only 2 inputs, we achieve:
+- **MSE 0.000303** (30x better than dense gradient-free)
+- **33 parameters** (63x fewer than standard)
+- **0.44 μs inference** (1.4x faster than dense with Numba)
 
 The secret is hybrid computation. With 8 neurons, a fully continuous network has limited representational power. But 8 saturated neurons create 256 discrete operational modes. A hybrid configuration (e.g., 6 saturated + 2 continuous) provides 64 discrete modes with smooth interpolation within each, combining the searchability of discrete spaces with the expressiveness of continuous spaces.
 
@@ -82,18 +87,36 @@ Given excess capacity, evolution preserves some continuous neurons for fine-grai
 ```
 GENREG-sine/
 ├── README.md
+├── CLAUDE.md                 # Claude Code guidance
+├── experiments_log.md        # Detailed experiment results
 ├── paper.pdf                 # Full paper
-├── sweep_summary.json        # All experimental results
+│
+├── core/                     # Shared utilities
+│   ├── __init__.py
+│   ├── metrics.py            # MSE, Energy, Saturation calculations
+│   └── training.py           # SA, Hill Climbing, GA training loops
+│
+├── models/                   # Pre-trained model checkpoints
+│   ├── ultra_sparse_mse0.000303.pt   # Best Ultra-Sparse model
+│   ├── standard_sa_mse0.009155.pt    # Best Standard SA model
+│   ├── backprop_mse0.000003.pt       # Best Backprop model
+│   └── README.md             # Usage guide with Numba examples
+│
+├── experiments/              # All experiment files
+│   ├── ultra_sparse.py       # Ultra-Sparse connectivity (breakthrough)
+│   ├── comprehensive_benchmark.py    # 20-trial comparison
+│   ├── inference_engines.py  # PyTorch vs NumPy vs Numba
+│   └── experiment_*.py       # Various experiments
+│
 ├── sine_config.py            # Configuration parameters
 ├── sine_train.py             # Main training script
 ├── sine_sweep.py             # Systematic sweep across configurations
 ├── sine_population.py        # Population management and evolution
 ├── sine_genome.py            # Individual genome (MLP + proteins)
-├── sine_mlp.py               # MLP controller
+├── sine_controller.py        # 2-layer MLP with input expansion
 ├── sine_proteins.py          # Protein cascade (trust mechanism)
+│
 ├── assets/                   # Figures and visualizations
-│   ├── noise_dimensions_chart.png
-│   └── hidden_size_chart.png
 └── results/                  # Training outputs and checkpoints
 ```
 
@@ -226,6 +249,134 @@ We track:
 3. **Hybrid equilibrium**: Given excess capacity, networks converge to ~75-80% saturation, preserving some continuous neurons for fine-tuning.
 
 4. **Efficiency**: Hybrid networks achieve the representational power of much larger continuous networks by combining discrete mode selection with continuous interpolation.
+
+## Ultra-Sparse Connectivity: The Breakthrough
+
+The most significant discovery from our experiments: **Ultra-Sparse connectivity enables gradient-free input selection**.
+
+### The Problem
+
+Dense gradient-free networks cannot learn which inputs matter. Given 256 inputs (16 true signals + 240 noise), a standard evolutionary network distributes weights proportionally across all inputs (~6% to true signals = 16/256). It achieves reasonable MSE by averaging, but cannot selectively attend to useful inputs.
+
+### The Solution
+
+Limit each hidden neuron to only K inputs (we use K=2). This creates **selection pressure** that weight evolution alone cannot provide:
+
+```
+Standard Dense:     Each neuron connects to ALL 256 inputs
+Ultra-Sparse (K=2): Each neuron connects to only 2 inputs (must choose wisely)
+```
+
+### Why It Works
+
+1. **Forced Selection**: With only 2 input slots, the network MUST choose the most useful inputs
+2. **Evolvable Indices**: We mutate both weights AND which inputs each neuron connects to
+3. **Selection Pressure**: Bad input choices lead to high MSE, driving evolution toward true signals
+4. **Emergent Feature Selection**: Input 4 (sin(2x)) was selected in 85% of trials across 20 runs
+
+### The Real Insight: Evolution Enables Feature Selection
+
+We tested backprop on the same sparse architecture to isolate the contribution:
+
+| Method | Best MSE | Can Discover Inputs? |
+|--------|----------|---------------------|
+| Backprop + Optimal Indices | **0.000191** | No (hand-picked) |
+| Evolution (Ultra-Sparse) | 0.000303 | **Yes** |
+| Backprop + Learnable Attention | 0.001828 | Poorly |
+| Backprop + Random Indices | 0.006920 | No |
+
+**Backprop with hand-picked optimal indices beats evolution!** But backprop cannot discover which indices matter. Differentiable soft attention fails to select true inputs (only 2-4 out of 16 true signals).
+
+**Evolution's value = automatic feature selection**, not better optimization. When you don't know which inputs matter, evolution finds them.
+
+### Results
+
+| Method | MSE | Params | Memory | Ops/sample | Inference |
+|--------|-----|--------|--------|------------|-----------|
+| Backprop + Optimal Indices | **0.000191** | 33 | 132 B | 24 | 0.44 μs |
+| **Ultra-Sparse (evolution)** | 0.000303 | **33** | **132 B** | **24** | **0.44 μs** |
+| Backprop (dense) | 0.000003 | 2065 | 8260 B | 2056 | 0.58 μs |
+| Standard SA (dense) | 0.009155 | 2065 | 8260 B | 2056 | 0.63 μs |
+
+**Ultra-Sparse achieves:**
+- **63x fewer parameters** than dense architectures
+- **86x fewer operations** per inference
+- **30x better MSE** than Standard SA (gradient-free)
+- **Automatic feature selection** (4x better than random at selecting true inputs)
+
+**What the best model actually selected:**
+```
+Neuron 4: [15, 4] = cos(8x), sin(5x)  ← Both true signals!
+Neuron 1: [117, 4] = noise, sin(5x)
+Neuron 6: [189, 4] = noise, sin(5x)
+... (other neurons use noise)
+
+Result: 4/16 connections to true signals (25% vs 6% random = 4x selection)
+```
+
+### Quick Start
+
+```python
+import torch
+from numba import jit
+import numpy as np
+
+# Load pre-trained model
+data = torch.load('models/ultra_sparse_mse0.000303.pt', weights_only=False)
+state = data['state_dict']
+
+# Fast inference with Numba (0.44 μs per sample)
+@jit(nopython=True, fastmath=True)
+def inference(x_expanded, indices, w1, b1, w2, b2):
+    hidden = np.empty(8, dtype=np.float32)
+    for h in range(8):
+        acc = b1[h]
+        for k in range(2):
+            acc += x_expanded[indices[h, k]] * w1[h, k]
+        hidden[h] = np.tanh(acc)
+    out = b2
+    for h in range(8):
+        out += hidden[h] * w2[h]
+    return np.tanh(out)
+```
+
+See `models/README.md` for complete usage guide.
+
+---
+
+## Additional Experiments
+
+Beyond the original paper, we conducted additional experiments comparing gradient-free methods:
+
+### Standard Metrics
+
+All experiments report three metrics:
+- **MSE**: Mean Squared Error (accuracy)
+- **Energy**: Inference cost (activation + weight energy)
+- **Saturation**: Percentage of neurons with |activation| > 0.95
+
+### Saturation Tradeoffs
+
+| Property | Backprop (0% sat) | Saturated (100% sat) |
+|----------|-------------------|----------------------|
+| MSE | 0.0001 | 0.02-0.03 |
+| Noise Robustness | 1x | **170x better** |
+| Inference Speed | 1x | **2.26x faster** |
+| Memory | 1x | **75% smaller** |
+
+### Key Discoveries
+
+1. **Noise Correlation Issue**: The original 240 "noise" signals contained `-sin(x)` (r=-1.0) and other correlated signals. Networks exploited these shortcuts. With truly uncorrelated noise, gradient-free methods cannot learn input selection.
+
+2. **True Signals Only**: Using only the 16 true signal inputs (no noise) achieves 10x better MSE with 15x fewer parameters.
+
+3. **Sensory Bottleneck**: Adding architectural bottlenecks doesn't force input selection - networks still distribute weights proportionally across all inputs.
+
+4. **Ultra-Sparse Connectivity**: Limiting inputs per neuron creates selection pressure, enabling gradient-free feature selection for the first time.
+
+5. **Inference Engine Matters**: PyTorch overhead dominates sparse models. Numba JIT provides 60x speedup for Ultra-Sparse, making it faster than dense models.
+
+See `experiments_log.md` for detailed results from all experiments.
 
 ## Extending This Work
 
