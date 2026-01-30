@@ -21,7 +21,7 @@ import json
 import time
 import pickle
 
-from sine_controller import expand_input
+from legacy.sine_controller import expand_input
 
 DEVICE = torch.device("cpu")
 OUTPUT_DIR = Path(__file__).parent.parent / "results" / "inference_benchmark"

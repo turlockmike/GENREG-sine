@@ -16,7 +16,7 @@ import torch.nn as nn
 import numpy as np
 import json
 
-from sine_controller import expand_input
+from legacy.sine_controller import expand_input
 from core.metrics import compute_metrics
 
 DEVICE = torch.device("cpu")

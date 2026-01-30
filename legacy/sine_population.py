@@ -6,7 +6,7 @@ Evolution engine with saturation tracking for MLP + Proteins.
 import torch
 import numpy as np
 from typing import List
-import sine_config as cfg
+from . import sine_config as cfg
 from sine_genome import SineGenome
 
 

@@ -9,7 +9,7 @@ import torch.optim as optim
 import numpy as np
 import time
 
-import sine_config as cfg
+from . import sine_config as cfg
 from sine_controller import SineController, expand_input
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")

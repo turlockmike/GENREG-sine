@@ -16,7 +16,7 @@ except ImportError:
     print("ERROR: matplotlib required. Install with: pip install matplotlib")
     exit(1)
 
-import sine_config as cfg
+from . import sine_config as cfg
 
 
 def find_latest_session():

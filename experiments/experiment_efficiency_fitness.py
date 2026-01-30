@@ -26,8 +26,8 @@ import json
 import time
 from pathlib import Path
 
-import sine_config as cfg
-from sine_controller import SineController, expand_input
+import legacy.sine_config as sine_config as cfg
+from legacy.sine_controller import SineController, expand_input
 
 DEVICE = torch.device("cpu")
 

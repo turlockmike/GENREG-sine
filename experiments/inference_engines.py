@@ -32,7 +32,7 @@ import torch
 import numpy as np
 import time
 
-from sine_controller import expand_input
+from legacy.sine_controller import expand_input
 
 # Try to import optional accelerators
 try:

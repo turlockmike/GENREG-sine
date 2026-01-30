@@ -12,7 +12,7 @@ Fitness = -MSE * trust_multiplier
 
 import torch
 import numpy as np
-import sine_config as cfg
+from . import sine_config as cfg
 from sine_controller import SineController
 from sine_proteins import (
     create_sine_protein_cascade,

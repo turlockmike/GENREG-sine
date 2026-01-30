@@ -36,7 +36,7 @@ import json
 import time
 from datetime import datetime
 
-from sine_controller import expand_input
+from legacy.sine_controller import expand_input
 
 DEVICE = torch.device("cpu")
 OUTPUT_DIR = Path(__file__).parent.parent / "results" / "comprehensive_benchmark"

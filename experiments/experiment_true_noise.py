@@ -21,7 +21,7 @@ import numpy as np
 import json
 from pathlib import Path
 
-import sine_config as cfg
+import legacy.sine_config as sine_config as cfg
 
 DEVICE = torch.device("cpu")
 
@@ -283,7 +283,7 @@ def run_experiment():
     noise_types = ['random', 'safe_freq', 'orthogonal']
 
     # Also check original noise
-    from sine_controller import expand_input
+    from legacy.sine_controller import expand_input
     x_expanded_orig = expand_input(x_test.unsqueeze(-1))
     orig_correlations = []
     for i in range(16, 256):
@@ -310,7 +310,7 @@ def run_experiment():
     print("\n[Training with ORIGINAL (leaky) noise]")
     torch.manual_seed(42)
     np.random.seed(42)
-    from sine_controller import SineController
+    from legacy.sine_controller import SineController
     orig_controller = SineController(device=DEVICE)
 
     # Train original

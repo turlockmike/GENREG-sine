@@ -17,7 +17,7 @@ import json
 import os
 from pathlib import Path
 
-import sine_config as cfg
+from . import sine_config as cfg
 from sine_controller import SineController
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")

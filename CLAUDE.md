@@ -42,27 +42,29 @@ git push fork main
 
 ## Commands
 
+This project uses `uv` for dependency management.
+
 ```bash
-# Install dependencies
-pip install torch numpy matplotlib scikit-learn
+# Install dependencies (creates .venv automatically)
+uv sync
 
-# Run single training session (original GENREG)
-python sine_train.py
+# Install with fast inference (Numba JIT)
+uv sync --extra fast
 
-# Run full experimental sweep (13 configurations)
-python sine_sweep.py
+# Install with dev tools (pytest, ruff)
+uv sync --extra dev
 
-# Run a specific experiment
-python experiments/sensory_bottleneck.py
+# Run experiments (uv run uses the project's venv)
+uv run python experiments/ultra_sparse.py
+uv run python experiments/gsa_digits.py --hidden 64 --k 16 --pop 50 --gens 300
+uv run python experiments/sklearn_benchmarks.py
 
-# Run GSA on digits (population-based SA)
-python experiments/gsa_digits.py --hidden 64 --k 16 --pop 50 --gens 300
+# Run original GENREG code
+uv run python legacy/sine_train.py
+uv run python legacy/sine_sweep.py
 
-# Run sklearn benchmarks
-python experiments/sklearn_benchmarks.py
-
-# Live visualization of training
-python sine_visualize.py
+# Run tests
+uv run pytest tests/
 ```
 
 ## Standard Metrics
@@ -92,6 +94,20 @@ python experiments/my_experiment.py
 
 Example experiment file:
 ```python
+"""
+Experiment N: Description
+
+Problem: What problem does this solve?
+Question: What question does this answer?
+
+Key Findings:
+- Finding 1
+- Finding 2
+
+References:
+- Results: results/experiment_name/
+- Log: docs/experiments_log.md (Experiment N)
+"""
 import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))

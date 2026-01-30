@@ -21,7 +21,7 @@ import json
 import os
 from pathlib import Path
 
-import sine_config as cfg
+from . import sine_config as cfg
 from sine_controller import SineController
 
 # Use CPU by default for simplicity, override with CUDA if available

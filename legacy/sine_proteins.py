@@ -15,7 +15,7 @@ Both proteins and MLP neurons can exhibit saturation (hybrid computation).
 
 import numpy as np
 from typing import Dict, List, Any
-import sine_config as cfg
+from . import sine_config as cfg
 
 
 class Protein:

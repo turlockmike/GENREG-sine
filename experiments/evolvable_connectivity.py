@@ -33,7 +33,7 @@ import numpy as np
 import json
 from typing import Tuple, Dict, List
 
-from sine_controller import expand_input
+from legacy.sine_controller import expand_input
 from core.metrics import compute_metrics, Metrics
 
 DEVICE = torch.device("cpu")

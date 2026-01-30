@@ -25,7 +25,7 @@ from dataclasses import dataclass, asdict, field
 from typing import List, Dict, Optional, Callable
 from copy import deepcopy
 
-import sine_config as cfg
+from . import sine_config as cfg
 from sine_population import SinePopulation
 
 
@@ -453,9 +453,9 @@ class SweepRunner:
 
         # Reload modules that cache config values
         import importlib
-        import sine_controller
-        import sine_population
-        import sine_genome
+        from . import sine_controller
+        from . import sine_population
+        from . import sine_genome
         importlib.reload(sine_controller)
         importlib.reload(sine_population)
         importlib.reload(sine_genome)

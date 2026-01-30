@@ -12,7 +12,7 @@ Network must learn to filter noise and focus on true signal.
 import torch
 import torch.nn.functional as F
 import numpy as np
-import sine_config as cfg
+from . import sine_config as cfg
 
 # Fixed random seed for reproducible noise patterns
 _noise_rng = np.random.RandomState(12345)

@@ -20,8 +20,8 @@ import json
 import copy
 from pathlib import Path
 
-import sine_config as cfg
-from sine_controller import SineController, expand_input
+import legacy.sine_config as sine_config as cfg
+from legacy.sine_controller import SineController, expand_input
 from sine_annealing import simulated_annealing
 
 DEVICE = torch.device("cpu")

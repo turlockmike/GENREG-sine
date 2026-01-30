@@ -22,7 +22,7 @@ import torch
 import numpy as np
 import json
 
-from sine_controller import expand_input
+from legacy.sine_controller import expand_input
 from core.metrics import compute_metrics, Metrics, format_metrics_table
 from core.training import train_sa
 

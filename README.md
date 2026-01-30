@@ -124,25 +124,45 @@ GENREG-sine/
 
 ### Requirements
 
-- Python 3.8+
-- PyTorch 1.9+
-- NumPy
+- Python 3.10+
+- [uv](https://docs.astral.sh/uv/) (recommended) or pip
 - CUDA (optional, for GPU acceleration)
 
-### Installation
+### Installation with uv (Recommended)
 
 ```bash
 git clone https://github.com/A1CST/GENREG-sine.git
 cd GENREG-sine
-pip install torch numpy
+
+# Install dependencies (creates .venv automatically)
+uv sync
+
+# Optional: Install with fast inference (Numba JIT - 60x faster)
+uv sync --extra fast
+
+# Optional: Install with dev tools (pytest, ruff)
+uv sync --extra dev
+```
+
+### Installation with pip
+
+```bash
+git clone https://github.com/A1CST/GENREG-sine.git
+cd GENREG-sine
+pip install -e .
+
+# Optional: Install with Numba for fast inference
+pip install -e ".[fast]"
 ```
 
 ## Usage
 
+All commands use `uv run` to execute within the project's virtual environment.
+
 ### Run a Single Training Session
 
 ```bash
-python sine_train.py
+uv run python legacy/sine_train.py
 ```
 
 This runs the default configuration (16 true signal + 240 noise dimensions, 8 hidden neurons) and outputs:
@@ -153,12 +173,12 @@ This runs the default configuration (16 true signal + 240 noise dimensions, 8 hi
 ### Run the Full Experimental Sweep
 
 ```bash
-python sine_sweep.py
+uv run python legacy/sine_sweep.py
 ```
 
 This reproduces all 13 configurations from the paper:
 - N0-N5: Noise scaling experiments
-- H1-H4: Hidden layer capacity experiments  
+- H1-H4: Hidden layer capacity experiments
 - C1-C3: Control experiments (compression without noise)
 
 Results are saved to `sweep_summary.json`.
@@ -166,7 +186,23 @@ Results are saved to `sweep_summary.json`.
 ### Run Specific Configurations
 
 ```bash
-python sine_sweep.py --configs N0 N4 C3
+uv run python legacy/sine_sweep.py --configs N0 N4 C3
+```
+
+### Run Key Experiments
+
+```bash
+# Ultra-sparse connectivity (breakthrough experiment)
+uv run python experiments/ultra_sparse.py
+
+# GSA on digits classification
+uv run python experiments/gsa_digits.py --hidden 64 --k 16 --pop 50 --gens 100
+
+# sklearn benchmarks
+uv run python experiments/sklearn_benchmarks.py
+
+# High-dimensional feature selection
+uv run python experiments/highdim_scaling.py
 ```
 
 ### Configuration Options
