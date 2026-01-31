@@ -112,6 +112,44 @@ Compare:
 **Background**: Du et al. (2018) show that GSA outperforms both pure GA and pure SA for sparse network optimization because:
 - SA is fast at local refinement (Monte Carlo acceptance)
 - Selection pressure prevents wasting time on chains stuck in bad local optima
+
+---
+
+### 2. MNIST Benchmark ⭐ KEY GOAL
+**Question**: Can GENREG match or beat standard MNIST benchmarks with a much smaller network?
+
+**Why MNIST matters**:
+- 784 input features (12× more than digits) → Tests sparse selection at scale
+- Well-established benchmark → Easy comparison with literature
+- If GENREG wins on params-per-accuracy, strong evidence for the approach
+
+**Baseline targets to beat**:
+
+| Model | MNIST Accuracy | Parameters | Target |
+|-------|----------------|------------|--------|
+| Logistic Regression | 92% | 7,850 | Beat with fewer params |
+| MLP (784→128→10) | 97-98% | ~100k | Match with 10× fewer |
+| MLP (784→32→10) | ~95% | ~25k | Match with 5× fewer |
+| **GENREG target** | **>95%** | **<5,000** | 5× more efficient |
+
+**Challenges**:
+- 784 features → Larger search space for index selection
+- Forward passes slower (784 vs 64 inputs)
+- May need larger H to handle complexity
+- Training time will scale up
+
+**Experiment plan**:
+1. Start with architecture sweep: H=[32, 64, 128], K=[8, 16, 32]
+2. Use stopping criteria from extended training experiment (gen 500-900)
+3. Compare params-per-accuracy against baselines
+4. If plateau too low, try environmental pressure experiments (F-J)
+
+**Success criteria**:
+- **Minimum**: >92% accuracy (beat logistic regression)
+- **Good**: >95% with <5,000 params (5× more efficient than small MLP)
+- **Excellent**: >97% with <10,000 params (10× more efficient than standard MLP)
+
+**File to create**: `experiments/mnist_benchmark.py`
 - No need for complex crossover (which is hard to define for sparse masks)
 
 **Algorithm from Paper (Algorithm 1 & 2)**:
