@@ -257,6 +257,118 @@ Compare at ~500 params budget:
 
 ---
 
+## Environmental Pressure & Adaptive Mutation ⭐ NEW
+
+**Core Insight**: Fitness isn't absolute - it's relative to environmental pressure. Harsh environments (high survival threshold) create different selection dynamics than lenient ones. Additionally, biological systems adapt mutation rates under stress.
+
+### Experiment F: Survival Thresholds (Fixed)
+**Question**: How does a fixed survival threshold affect final accuracy and efficiency?
+
+**Variable**: Survival threshold (networks below threshold are replaced)
+**Controlled**: Architecture (H=32, K=4), generations (1000), population (50), mutation rates
+
+| Condition | Threshold | Prediction |
+|-----------|-----------|------------|
+| Lenient | 0.0 (none) | Baseline - current behavior |
+| Moderate | 0.50 | Faster convergence, less diversity |
+| Harsh | 0.75 | Higher accuracy OR population collapse |
+| Extreme | 0.85 | May fail to bootstrap |
+
+**Implementation**:
+```python
+survivors = [c for c in population if accuracy(c) >= threshold]
+# Repopulate from survivors if needed
+```
+
+**Metrics**: Final accuracy, generations to plateau, extinction events, population diversity
+
+---
+
+### Experiment G: Extinction Events (Sudden Threshold Increases)
+**Question**: Can populations survive and adapt to sudden increases in survival requirements?
+
+**Variable**: Extinction event frequency and magnitude
+**Controlled**: Architecture, base threshold (0.3), mutation rates
+
+| Condition | Event Schedule | Prediction |
+|-----------|----------------|------------|
+| No events | Threshold stays 0.3 | Baseline |
+| Gradual | +0.05 every 200 gens | Steady improvement |
+| Sudden | +0.20 every 500 gens | Punctuated equilibrium |
+| Catastrophic | +0.30 at gen 500 only | Mass extinction, then recovery? |
+
+**Key question**: Does surviving extinction events produce more robust solutions?
+
+---
+
+### Experiment H: Stagnation-Adaptive Mutation
+**Question**: Does increasing mutation rate during plateaus help escape local optima?
+
+**Variable**: Mutation rate adaptation when stagnating
+**Controlled**: Architecture, threshold (none), extinction events (none)
+
+| Condition | Mutation Response | Prediction |
+|-----------|-------------------|------------|
+| Fixed | Always 0.15 | Baseline |
+| 2x on plateau | 0.30 when no improvement for 50 gens | Escapes some local optima |
+| 5x on plateau | 0.75 when stagnating | More exploration, maybe unstable |
+| Adaptive decay | Increase then gradually return to base | Best of both worlds? |
+
+**Stagnation detection**:
+```python
+is_stagnating = (best_fitness - best_fitness_50_gens_ago) < 0.001
+```
+
+---
+
+### Experiment I: Extinction-Adaptive Mutation (Hypermutation)
+**Question**: Does hypermutation help populations survive extinction events?
+
+**Variable**: Mutation rate response to extinction pressure
+**Controlled**: Architecture, threshold schedule (fixed events), stagnation response (none)
+
+| Condition | Mutation Response | Prediction |
+|-----------|-------------------|------------|
+| Fixed | Always 0.15 | Many extinction failures |
+| 3x under pressure | 0.45 when survival_rate < 0.5 | Better survival |
+| 10x hypermutation | 1.5 when survival_rate < 0.3 | Desperate exploration |
+| Graduated | Scale mutation inversely with survival rate | Proportional response |
+
+**Extinction pressure detection**:
+```python
+survival_rate = len(survivors) / len(population)
+if survival_rate < 0.3:
+    mutation_rate = base_rate * 10  # Hypermutation
+```
+
+---
+
+### Experiment J: Combined Adaptive System
+**Question**: What's the optimal combination of environmental pressure + adaptive mutation?
+
+**Run after F, G, H, I**: Use best settings from each to build full adaptive system.
+
+| Component | Best Setting from Experiments |
+|-----------|------------------------------|
+| Survival threshold | From Exp F |
+| Extinction schedule | From Exp G |
+| Stagnation response | From Exp H |
+| Extinction response | From Exp I |
+
+**Compare**: Full adaptive system vs current fixed GSA on digits benchmark.
+
+---
+
+### Experiment Order (One Variable at a Time)
+
+1. **F first**: Establish baseline with survival thresholds (no adaptation)
+2. **G second**: Add extinction events (still fixed mutation)
+3. **H third**: Test stagnation-adaptive mutation (no threshold)
+4. **I fourth**: Test extinction-adaptive mutation (with threshold)
+5. **J last**: Combine best settings
+
+---
+
 ## Medium Priority
 
 ### Efficiency-Aware Fitness Function ⭐ NEW
