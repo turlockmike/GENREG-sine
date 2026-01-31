@@ -69,7 +69,38 @@ uv run python legacy/sine_sweep.py
 
 # Run tests
 uv run pytest tests/
+
+# Live experiment dashboard
+uv run python dashboard.py    # Open http://localhost:8050
 ```
+
+## Live Dashboard
+
+Monitor running experiments in real-time at http://localhost:8050
+
+**Start dashboard:**
+```bash
+uv run python dashboard.py
+```
+
+**Add experiments to dashboard:**
+1. Output CSV to `results/live/` with columns: `gen,test_accuracy,best_fitness,elapsed_s`
+2. Optionally add `.json` file with config metadata
+
+**Example integration:**
+```python
+from pathlib import Path
+
+# Output to live folder
+csv_path = Path("results/live") / f"my_experiment.csv"
+with open(csv_path, 'w') as f:
+    f.write("gen,test_accuracy,best_fitness,elapsed_s\n")
+    # Write each generation...
+    f.write(f"{gen},{accuracy},{fitness},{elapsed}\n")
+    f.flush()  # Important: flush for live updates
+```
+
+**Demo:** `uv run python experiments/demo_dashboard.py`
 
 ## Standard Metrics
 
