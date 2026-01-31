@@ -99,8 +99,8 @@ def run_single_sa(X_train, y_onehot, X_test, y_test,
 def run_random_restarts(X_train, y_onehot, X_test, y_test,
                         n_restarts=10, sa_steps_each=6000):
     """Run N independent SA chains, return best."""
-    print(f"\nRandom Restarts: {n_restarts} chains x {sa_steps_each} steps each")
-    print(f"Total SA steps: {n_restarts * sa_steps_each}")
+    print(f"\nRandom Restarts: {n_restarts} chains x {sa_steps_each} steps each", flush=True)
+    print(f"Total SA steps: {n_restarts * sa_steps_each}", flush=True)
 
     best_controller = None
     best_accuracy = 0
@@ -113,7 +113,7 @@ def run_random_restarts(X_train, y_onehot, X_test, y_test,
             sa_steps=sa_steps_each, seed=i*100
         )
         all_accuracies.append(accuracy)
-        print(f"  Chain {i+1}: {accuracy:.1%}")
+        print(f"  Chain {i+1}: {accuracy:.1%}", flush=True)
 
         if accuracy > best_accuracy:
             best_accuracy = accuracy
@@ -134,8 +134,8 @@ def run_random_restarts(X_train, y_onehot, X_test, y_test,
 def run_gsa(X_train, y_onehot, X_test, y_test,
             population_size=50, generations=10, sa_steps_per_gen=20):
     """Run GSA with population + selection."""
-    print(f"\nGSA: Pop={population_size}, Gens={generations}, SA/gen={sa_steps_per_gen}")
-    print(f"Total SA steps: ~{population_size * generations * sa_steps_per_gen}")
+    print(f"\nGSA: Pop={population_size}, Gens={generations}, SA/gen={sa_steps_per_gen}", flush=True)
+    print(f"Total SA steps: ~{population_size * generations * sa_steps_per_gen}", flush=True)
 
     # Initialize population
     population = []
@@ -193,6 +193,10 @@ def run_gsa(X_train, y_onehot, X_test, y_test,
             best_controller = gen_best[0].clone()
             best_fitness = gen_best[1]
 
+        # Progress logging every 10 generations
+        if (gen + 1) % 10 == 0 or gen == 0:
+            print(f"    Gen {gen+1:3d}/{generations}: best_fitness={best_fitness:.6f}", flush=True)
+
         temperature *= decay
 
     elapsed = time.time() - start
@@ -240,11 +244,11 @@ def _sa_steps(controller, X_train, y_onehot, temperature, n_steps):
 
 
 def main():
-    print("=" * 70)
-    print("GSA vs RANDOM RESTARTS ABLATION")
-    print("=" * 70)
-    print("\nQuestion: Is GSA's selection pressure helping, or is it just")
-    print("          the benefit of trying multiple random starts?")
+    print("=" * 70, flush=True)
+    print("GSA vs RANDOM RESTARTS ABLATION", flush=True)
+    print("=" * 70, flush=True)
+    print("\nQuestion: Is GSA's selection pressure helping, or is it just", flush=True)
+    print("          the benefit of trying multiple random starts?", flush=True)
 
     # Load data
     X_train, X_test, y_train, y_test = load_digits_data()
@@ -254,7 +258,7 @@ def main():
     y_onehot.scatter_(1, y_train.unsqueeze(1), 1)
     y_onehot = y_onehot * 1.6 - 0.8
 
-    print(f"\nData: {len(X_train)} train, {len(X_test)} test")
+    print(f"\nData: {len(X_train)} train, {len(X_test)} test", flush=True)
 
     results = []
 
@@ -264,51 +268,51 @@ def main():
     result = run_random_restarts(X_train, y_onehot, X_test, y_test,
                                   n_restarts=10, sa_steps_each=6000)
     results.append(result)
-    print(f"  Best: {result['best_accuracy']:.1%}, Mean: {result['mean_accuracy']:.1%}")
+    print(f"  Best: {result['best_accuracy']:.1%}, Mean: {result['mean_accuracy']:.1%}", flush=True)
 
     # 2. GSA 10 generations: 50 pop x 10 gen x 20 steps = 10,000 steps (less compute)
     result = run_gsa(X_train, y_onehot, X_test, y_test,
                      population_size=50, generations=10, sa_steps_per_gen=20)
     results.append(result)
-    print(f"  Accuracy: {result['best_accuracy']:.1%}")
+    print(f"  Accuracy: {result['best_accuracy']:.1%}", flush=True)
 
     # 3. GSA matched compute: 50 pop x 60 gen x 20 steps = 60,000 steps
     result = run_gsa(X_train, y_onehot, X_test, y_test,
                      population_size=50, generations=60, sa_steps_per_gen=20)
     results.append(result)
-    print(f"  Accuracy: {result['best_accuracy']:.1%}")
+    print(f"  Accuracy: {result['best_accuracy']:.1%}", flush=True)
 
     # 4. Random restarts with more chains: 50 x 1200 = 60,000 steps
     result = run_random_restarts(X_train, y_onehot, X_test, y_test,
                                   n_restarts=50, sa_steps_each=1200)
     results.append(result)
-    print(f"  Best: {result['best_accuracy']:.1%}, Mean: {result['mean_accuracy']:.1%}")
+    print(f"  Best: {result['best_accuracy']:.1%}, Mean: {result['mean_accuracy']:.1%}", flush=True)
 
     # Summary
-    print("\n" + "=" * 70)
-    print("SUMMARY")
-    print("=" * 70)
-    print(f"\n{'Method':<45} | {'Accuracy':<10} | {'SA Steps':<12} | {'Time':<8}")
-    print("-" * 85)
+    print("\n" + "=" * 70, flush=True)
+    print("SUMMARY", flush=True)
+    print("=" * 70, flush=True)
+    print(f"\n{'Method':<45} | {'Accuracy':<10} | {'SA Steps':<12} | {'Time':<8}", flush=True)
+    print("-" * 85, flush=True)
 
     for r in results:
         acc = f"{r['best_accuracy']:.1%}"
         if 'mean_accuracy' in r:
             acc += f" (mean {r['mean_accuracy']:.1%})"
-        print(f"{r['method']:<45} | {acc:<20} | {r['total_sa_steps']:<12} | {r['time']:.1f}s")
+        print(f"{r['method']:<45} | {acc:<20} | {r['total_sa_steps']:<12} | {r['time']:.1f}s", flush=True)
 
-    print("-" * 85)
-    print("\nConclusion: ", end="")
+    print("-" * 85, flush=True)
+    print("\nConclusion: ", end="", flush=True)
 
     gsa_acc = results[2]['best_accuracy']  # GSA 60 gens
     restart_acc = results[0]['best_accuracy']  # Random 10x6000
 
     if gsa_acc > restart_acc + 0.05:
-        print(f"GSA's selection pressure helps! (+{(gsa_acc-restart_acc)*100:.1f}pp)")
+        print(f"GSA's selection pressure helps! (+{(gsa_acc-restart_acc)*100:.1f}pp)", flush=True)
     elif gsa_acc < restart_acc - 0.05:
-        print(f"Random restarts are better! (+{(restart_acc-gsa_acc)*100:.1f}pp)")
+        print(f"Random restarts are better! (+{(restart_acc-gsa_acc)*100:.1f}pp)", flush=True)
     else:
-        print("Similar performance - selection pressure has marginal effect")
+        print("Similar performance - selection pressure has marginal effect", flush=True)
 
 
 if __name__ == "__main__":

@@ -105,13 +105,9 @@ Compare:
 - Larger population (100+)
 - Tune seed fraction and SA steps per generation
 
-**Ablation: GSA vs Random Restarts** (`experiments/gsa_ablation.py`)
-- Question: Is GSA's selection pressure actually helping, or just trying more starts?
-- Partial results (60k SA steps each):
-  - Random Restarts (10x6000): **68.3%** best, 60.3% mean
-  - GSA (10 gens only): 36.7% - not enough generations
-  - GSA (60 gens): TBD - run experiment to compare
-- Run with: `python experiments/gsa_ablation.py`
+**Ablation: GSA vs Random Restarts** ✅ COMPLETE
+- See: `docs/experiments/2026-01-30_gsa_ablation.md`
+- Result: GSA beats random restarts 71.9% vs 68.3% (+3.6pp)
 
 **Background**: Du et al. (2018) show that GSA outperforms both pure GA and pure SA for sparse network optimization because:
 - SA is fast at local refinement (Monte Carlo acceptance)

@@ -1009,6 +1009,12 @@ Backprop's variance is 350x higher because it can't escape bad random indices.
 
 ---
 
+## Experiment 17: GSA vs Random Restarts Ablation
+
+See: [docs/experiments/2026-01-30_gsa_ablation.md](experiments/2026-01-30_gsa_ablation.md)
+
+**Result**: GSA beats random restarts 71.9% vs 68.3% (+3.6pp). Chain length matters more than quantity.
+
 ## Next Steps
 
 1. **Test on more benchmarks**: Friedman2, Friedman3, UCI datasets

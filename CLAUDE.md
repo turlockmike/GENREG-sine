@@ -20,15 +20,19 @@ GENREG-sine/
 │   ├── backprop_mse0.000003.pt       # Most accurate
 │   └── README.md             # Usage guide with Numba examples
 │
-├── experiments/              # All experiment files
+├── experiments/              # Experiment code files
 │   ├── ultra_sparse.py       # ⭐ BREAKTHROUGH experiment
 │   ├── comprehensive_benchmark.py    # 20-trial comparison
 │   ├── inference_engines.py  # PyTorch vs NumPy vs Numba
-│   └── experiment_*.py       # Legacy experiments
+│   └── gsa_*.py              # GSA experiments
 │
-├── sine_*.py                 # Original GENREG code
-├── results/                  # Experiment outputs (JSON)
-└── experiments_log.md        # Detailed results log
+├── docs/
+│   ├── experiments/          # Individual experiment reports (YYYY-MM-DD_title.md)
+│   ├── experiments_log.md    # Index of all experiments with brief summaries
+│   └── TODO.md               # Future work and open questions
+│
+├── results/                  # Raw experiment outputs (JSON, checkpoints)
+└── legacy/                   # Original GENREG code (sine_*.py)
 ```
 
 ## Git Remotes
@@ -79,59 +83,105 @@ uv run pytest tests/
 
 Use `core.metrics.compute_metrics(controller, x_test, y_true)` for consistent measurement.
 
-## Writing New Experiments
+## Experiment Workflow
 
-**IMPORTANT: Always create experiment files instead of running inline Python.**
-This allows iteration, reproducibility, and tracking of experiments.
+Follow this standard process for all experiments:
+
+### 1. Create the Experiment Code
+
+Create a file in `experiments/` with a descriptive name:
 
 ```bash
-# Create a new experiment file
 experiments/my_experiment.py
-
-# Run it
-python experiments/my_experiment.py
 ```
 
-Example experiment file:
+Include a header docstring with the question being investigated:
+
 ```python
 """
-Experiment N: Description
+Experiment: Brief Title
 
-Problem: What problem does this solve?
-Question: What question does this answer?
-
-Key Findings:
-- Finding 1
-- Finding 2
-
-References:
-- Results: results/experiment_name/
-- Log: docs/experiments_log.md (Experiment N)
+Question: What specific question does this experiment answer?
+Hypothesis: What do we expect to find?
 """
-import sys
-from pathlib import Path
-sys.path.insert(0, str(Path(__file__).parent.parent))
-
-import torch
-import numpy as np
-from core.metrics import compute_metrics
-from core.training import train_sa
-
-# Create your controller class with forward(), mutate(), clone() methods
-
-# Train
-best, final_metrics, history = train_sa(
-    controller, x_test, y_true,
-    max_steps=15000,
-    verbose=True
-)
-
-# Results automatically include MSE, Energy, Saturation
-print(f"Final: {final_metrics}")
-
-if __name__ == "__main__":
-    run_experiment()
 ```
+
+### 2. Run the Experiment
+
+```bash
+uv run python experiments/my_experiment.py
+```
+
+All experiments MUST report the standard metrics (MSE, Energy, Saturation) using `core.metrics.compute_metrics()`.
+
+### 3. Create the Experiment Report
+
+After running, create a detailed report:
+
+```bash
+docs/experiments/YYYY-MM-DD_experiment_name.md
+```
+
+Report template:
+
+```markdown
+# Experiment N: Title
+
+**Date**: YYYY-MM-DD
+**Code**: `experiments/experiment_name.py`
+
+## Question
+
+What specific question does this experiment answer?
+
+## Setup
+
+- Dataset, architecture, hyperparameters
+- Matched compute budget (if comparing methods)
+
+## Results
+
+| Method | Metric 1 | Metric 2 | ... |
+|--------|----------|----------|-----|
+| ...    | ...      | ...      | ... |
+
+## Key Findings
+
+1. Finding with **bold** for emphasis
+2. Quantified comparisons (e.g., "3.6pp improvement")
+
+## Conclusion
+
+Brief interpretation of results and implications.
+```
+
+### 4. Update the Experiments Log
+
+Add a brief entry to `docs/experiments_log.md`:
+
+```markdown
+## Experiment N: Title
+
+See: [docs/experiments/YYYY-MM-DD_experiment_name.md](experiments/YYYY-MM-DD_experiment_name.md)
+
+**Result**: One-line summary of the key finding.
+```
+
+### 5. Update TODO.md (if applicable)
+
+If the experiment was listed in TODO.md:
+- Mark it ✅ COMPLETE
+- Add a reference to the report file
+- Keep TODO.md focused on future work, not detailed results
+
+### Summary
+
+| Step | Location | Content |
+|------|----------|---------|
+| Code | `experiments/*.py` | Runnable experiment |
+| Report | `docs/experiments/YYYY-MM-DD_*.md` | Full results and analysis |
+| Index | `docs/experiments_log.md` | Brief summary + link |
+| Future | `docs/TODO.md` | Open questions only |
 
 ## Architecture
 
@@ -156,7 +206,9 @@ Environment (256) → Sensory (N neurons) → Processing (8) → Output (1)
 | `core/training.py` | SA, Hill Climbing, GA training loops |
 | `sine_config.py` | Central configuration |
 | `sine_controller.py` | 2-layer MLP with input expansion |
-| `experiments_log.md` | All experiment results |
+| `docs/experiments_log.md` | Index of all experiments |
+| `docs/experiments/*.md` | Detailed experiment reports |
+| `docs/TODO.md` | Future work and open questions |
 
 ## Important Findings
 
@@ -201,6 +253,6 @@ Key settings in `sine_config.py`:
 
 ## Output
 
-Results saved to `results/<experiment_name>/`:
-- `results.json` — Metrics and configuration
-- Saturation trajectories and analysis
+- **Raw data**: `results/<experiment_name>/` — JSON metrics, checkpoints
+- **Reports**: `docs/experiments/YYYY-MM-DD_*.md` — Analysis and conclusions
+- **Index**: `docs/experiments_log.md` — Quick reference to all experiments
