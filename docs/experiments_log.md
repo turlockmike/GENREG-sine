@@ -34,9 +34,9 @@ The key mechanism: fixed K inputs per neuron + evolvable indices creates selecti
 |---------|--------|-------|------------|
 | Breast Cancer | 95.9% | 97.1% | **108x fewer params** |
 | Wine | 97.2% | 100% | **78x fewer params** |
-| Digits | 88.1%* | 97.0% | **14.5x fewer params** |
+| **Digits** | **95.0%*** | 97.0% | **18x fewer params** |
 
-*H=32, K=8, L=1. Extended training with H=32, K=4 achieves 85.6% with only 490 params (18x fewer).
+*H=32, K=4, pop=100, idx=0.02, wt=0.02. Only 2pp below dense backprop!
 
 ### When Ultra-Sparse Wins
 
@@ -1022,6 +1022,103 @@ See: [docs/experiments/2026-01-30_extended_training.md](experiments/2026-01-30_e
 **Result**: Plateau at gen ~900, peak 84.7% accuracy. Extended training does NOT break through ceiling.
 
 **Key finding**: Stop at gen 500 for 80% (17 min) or gen 900 for 84% (30 min). Beyond that is wasteful.
+
+---
+
+## Experiment 19: Narrow-Deep vs Wide-Shallow
+
+**Date**: 2026-01-30
+**Code**: `experiments/gsa_deep.py`
+
+**Question**: Can depth compensate for width at fixed parameter budget (~490 params)?
+
+**Results**:
+
+| Config | Params | Accuracy |
+|--------|--------|----------|
+| L=1, H=32 (baseline) | 490 | **83.1%** |
+| L=2, H=24 | 490 | 81.9% |
+| L=3, H=18 | 460 | 67.2% |
+
+**Conclusion**: Depth does NOT help. L=1 is best. Deeper networks hurt significantly (-15.8pp for L=3).
+
+---
+
+## Experiment 20: Comprehensive GSA Ablation Suite ⭐ BREAKTHROUGH
+
+See: [docs/experiments/2026-01-30_gsa_ablation_suite.md](experiments/2026-01-30_gsa_ablation_suite.md)
+
+**Question**: Which GSA hyperparameter matters most for breaking the ~85% plateau?
+
+**Method**: Two phases - 21 single-variable ablations, then 8 combination experiments
+
+### Phase 1: Single-Variable Ablation
+
+| Config | Accuracy | vs Control | Key Change |
+|--------|----------|------------|------------|
+| **pop100** | **92.2%** | **+3.6pp** | Population 50→100 |
+| **idx0.05** | **91.7%** | **+3.1pp** | Index swap 0.1→0.05 |
+| wt0.05 | 89.4% | +0.8pp | Weight rate 0.15→0.05 |
+| control | 88.6% | baseline | - |
+| idx0.0 | 84.4% | -4.2pp | No index mutation |
+
+### Phase 2: Combination Experiments ⭐ NEW BEST
+
+| Config | Accuracy | vs Control | Changes |
+|--------|----------|------------|---------|
+| **minimal_mut** | **95.0%** | **+6.4pp** | pop=100, idx=0.02, wt=0.02 |
+| combo_top3 | 94.4% | +5.8pp | pop=100, idx=0.05, wt=0.05 |
+| pop200 | 93.6% | +5.0pp | pop=200, idx=0.05, wt=0.05 |
+| combo_all | 93.3% | +4.7pp | pop=100, idx=0.05, wt=0.05, sa=5 |
+| idx_only | 70.3% | -18.3pp | pop=100, idx=0.05, wt=0.0 |
+
+**Key Findings**:
+
+1. **NEW BEST: 95.0% accuracy** with minimal_mut (pop=100, idx=0.02, wt=0.02)
+2. **Less mutation is MUCH better** - 0.02 rates beat 0.05 rates
+3. **Weight mutation essential** - idx_only (wt=0.0) failed at 70.3%
+4. **Larger populations have diminishing returns** - pop200 < combo_top3
+
+**Conclusion**: The ~85% plateau was a hyperparameter problem, not an architectural limit. Very conservative mutation (0.02) + population diversity achieves **95.0% accuracy** - only 2pp below dense backprop (97%).
+
+---
+
+## Experiment 21: RetinalNet & MetabolicFitness
+
+**Date**: 2026-01-30
+**Code**: `experiments/retinal_net.py`, `experiments/metabolic_fitness.py`, `experiments/metabolic_flip.py`
+
+**Question**: Can a sensory bottleneck with evolvable masks (flip on/off) match fixed-K performance?
+
+### Architectures Tested
+
+1. **Baseline (UltraSparse)**: Fixed K=4, index swaps - proven 95% accuracy
+2. **FlipSparse**: Single layer with flip mutations (connections toggle on/off)
+3. **RetinalNet**: Sensor bottleneck with dual flip masks (Input→Sensor→Hidden)
+
+### Results
+
+| Architecture | Best Config | Accuracy | Connections | Density |
+|--------------|-------------|----------|-------------|---------|
+| **Baseline** | K=4, idx_swap | **94.7%** | 128 | 6.2% |
+| FlipSparse | λ=0 (no penalty) | 90.0% | 921 | 45.0% |
+| FlipSparse | λ=0.0001 | 89.4% | 731 | 35.7% |
+| RetinalNet | λ=0 (no penalty) | 89.2% | 652 | 42.4% |
+| RetinalNet | λ=0.001 | 78.3% | 255 | 16.6% |
+
+### Key Findings
+
+1. **Baseline (fixed-K) still wins** - 94.7% vs 90% for best flip variant
+
+2. **Metabolic penalty creates sparsity but hurts accuracy**:
+   - λ=0: 45% density, 90% accuracy
+   - λ=0.002: 16% density, 67% accuracy
+
+3. **Without penalty, flip masks converge to ~45% dense** - no natural sparsity pressure
+
+4. **The fixed-K constraint is the secret sauce** - forces selection without sacrificing accuracy
+
+**Conclusion**: Architectural constraint (fixed K) > fitness penalty for achieving sparse, accurate networks.
 
 ---
 

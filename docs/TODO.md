@@ -87,6 +87,56 @@ Compare:
 
 ## High Priority
 
+### 0. Training Improvements ⭐ TOP PRIORITY
+
+Two techniques to try before MNIST:
+
+#### A. Data Augmentation
+**Question**: Does augmenting training data improve generalization without changing the algorithm?
+
+**Technique**: Random transforms during fitness evaluation:
+- Rotation: ±10°
+- Shift: ±10% in x/y
+- Zoom: ±10%
+- (Optional) Elastic deformation
+
+**Expected benefit**: +2-5% accuracy, more robust networks
+
+**Implementation**:
+```python
+def augment_batch(X):
+    # Apply random rotation, shift, zoom to each image
+    return X_augmented
+
+# During fitness eval
+pred = controller.forward(augment_batch(X_train))
+```
+
+#### B. Mini-Batch Fitness Evaluation
+**Question**: Does noisy fitness (evaluating on random subset) help exploration?
+
+**Current**: Evaluate on ALL 1437 training examples every time (exact but slow)
+**Proposed**: Evaluate on random batch of 64-128 examples (noisy but fast)
+
+| Aspect | Full Batch | Mini-Batch |
+|--------|-----------|------------|
+| Speed | 1x | ~10-20x faster |
+| Noise | None | Stochastic |
+| Exploration | Deterministic | May escape local optima |
+
+**Biological analogy**: Real organisms don't get perfect fitness signals - noisy evaluation is more realistic.
+
+**Implementation**:
+```python
+batch_idx = np.random.choice(len(X_train), size=128, replace=False)
+pred = controller.forward(X_train[batch_idx])
+fitness = -torch.mean((pred - y_onehot[batch_idx]) ** 2).item()
+```
+
+**Experiment**: Compare full-batch vs mini-batch (64, 128, 256) on digits
+
+---
+
 ### 1. Population-Based SA (Genetic Simulated Annealing) ⭐ IMPLEMENTED
 **Question**: Can running multiple SA chains with selection pressure solve harder problems like digits?
 
@@ -223,16 +273,30 @@ for iteration in range(iterations):
 
 ---
 
-### 3. Solve Digits (10-class classification)
+### 3. Solve Digits (10-class classification) ✅ SOLVED (95.0%)
 **Question**: What does GENREG need to achieve >90% on digits?
 
-**Current status**: H=32, K=8 → 64.7% (vs Dense 97%)
+**Status**: ✅ ACHIEVED 95.0% - only 2pp below dense backprop!
 
-**Approaches to try**:
-- Larger network (H=128, K=32)
-- Population-based SA (see #1 above)
-- Longer training
-- Different temperature schedules
+**Phase 1 - Single Variable Ablation** (2026-01-30):
+| Config | Accuracy | Key Change |
+|--------|----------|------------|
+| **pop100** | **92.2%** | Population 50→100 |
+| **idx0.05** | **91.7%** | Index swap 0.1→0.05 |
+| control | 88.6% | H=32, K=4, pop=50 |
+
+**Phase 2 - Combination Experiments** (2026-01-30):
+| Config | Accuracy | Key Change |
+|--------|----------|------------|
+| **minimal_mut** | **95.0%** | pop=100, idx=0.02, wt=0.02 |
+| combo_top3 | 94.4% | pop=100, idx=0.05, wt=0.05 |
+| pop200 | 93.6% | pop=200, idx=0.05, wt=0.05 |
+
+**Key Finding**: The plateau was due to **over-aggressive mutation**, not architectural limits.
+- Very low mutation rates (0.02) + population diversity = breaks through to 95%
+- Weight mutation essential (idx_only at 70.3%)
+
+**Result**: 95.0% accuracy with 490 params (18x fewer than dense backprop's 8970)
 
 ---
 
@@ -258,30 +322,21 @@ for iteration in range(iterations):
 
 ---
 
-### 5. Deeper Networks with Low H
+### 5. Deeper Networks with Low H ✅ TESTED (Depth hurts)
 **Question**: Can depth compensate for width? Does a narrow-deep network outperform wide-shallow?
 
-**Motivation**:
-- Previous results: H=32 beats H=64 (smaller is better for fixed K)
-- But what about H=16 or H=8 with 2-3 layers?
-- Biological parallel: cortical columns are deep and narrow
+**Results** (2026-01-30, `experiments/gsa_deep.py`):
 
-**Experiment Design**:
-```
-Compare at ~500 params budget:
-- Wide-shallow: H=32, K=4, L=1  (490 params) - current best: 85.6%
-- Narrow-deep:  H=16, K=4, L=2  (~similar params)
-- Very narrow:  H=8,  K=4, L=3  (~similar params)
-```
+| Config | Params | Accuracy | vs Baseline |
+|--------|--------|----------|-------------|
+| L=1, H=32 | 490 | **83.1%** | baseline |
+| L=2, H=24 | 490 | 81.9% | -1.2pp |
+| L=3, H=18 | 460 | 67.2% | **-15.8pp** |
 
-**Key Questions**:
-1. Does depth help information flow with extreme sparsity?
-2. Do deeper layers develop different specializations?
-3. Is there a depth where GSA struggles to optimize?
-
-**Previous arch_search finding**: L=1 dominated, but that was with larger H. Small H + deep might be different.
-
-**File to create**: `experiments/narrow_deep.py`
+**Conclusion**: ❌ Depth does NOT help. L=1 is optimal.
+- L=2 is slightly worse but recoverable
+- L=3 is severely bottlenecked - information can't flow through sparse deep layers
+- Mutations in early layers disrupt all downstream computation
 
 ---
 
@@ -295,7 +350,26 @@ Compare at ~500 params budget:
 
 ---
 
-## Environmental Pressure & Adaptive Mutation ⭐ NEW
+## Combine Ablation Winners ✅ COMPLETE
+
+**Goal**: Combine the best hyperparameters from ablation suite to maximize accuracy.
+
+**Tested combinations** (all with pop=100):
+| Config | idx_swap | wt_rate | Accuracy |
+|--------|----------|---------|----------|
+| **minimal_mut** | **0.02** | **0.02** | **95.0%** |
+| combo_top3 | 0.05 | 0.05 | 94.4% |
+| pop200 | 0.05 | 0.05 | 93.6% |
+| combo_all | 0.05 | 0.05 (sa=5) | 93.3% |
+| idx_only | 0.05 | 0.0 | 70.3% |
+
+**Result**: 95.0% achieved with minimal_mut - exceeds prediction of >93%!
+
+**Key insight**: Even lower mutation rates (0.02) beat the ablation winners (0.05). Weight mutation is essential.
+
+---
+
+## Environmental Pressure & Adaptive Mutation
 
 **Core Insight**: Fitness isn't absolute - it's relative to environmental pressure. Harsh environments (high survival threshold) create different selection dynamics than lenient ones. Additionally, biological systems adapt mutation rates under stress.
 

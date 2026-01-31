@@ -118,6 +118,91 @@ Use `core.metrics.compute_metrics(controller, x_test, y_true)` for consistent me
 
 Follow this standard process for all experiments:
 
+### 0. Check for Existing Experiments (REQUIRED)
+
+**Before creating ANY new experiment code, ALWAYS search for existing implementations:**
+
+```bash
+# Search experiments/ for related code
+ls experiments/
+grep -l "keyword" experiments/*.py
+
+# Check TODO.md for planned experiments
+# Check experiments_log.md for completed experiments
+# Check docs/experiments/ for reports
+```
+
+**Common existing experiments:**
+- `gsa_deep.py` - Deep networks (multi-layer)
+- `extreme_sparsity.py` - K=1, K=2 experiments
+- `arch_search.py` - Architecture search (H, K, L)
+- `constraint_boundary.py` - K threshold experiments
+- `extended_training.py` - Long training runs
+
+**If an experiment exists:** Adapt it rather than creating new code.
+
+### 0.5. GSA Training Guidelines
+
+**Minimum generations:** GSA experiments need **1000 generations minimum** to reach plateau. Extended training experiment showed plateau at gen ~900.
+
+**Run configs in parallel:** When testing multiple configs (e.g., different H, K, L values), run them in parallel processes rather than sequentially. Example:
+
+```bash
+# Run multiple configs in parallel
+uv run python experiments/my_exp.py --config L1 &
+uv run python experiments/my_exp.py --config L2 &
+uv run python experiments/my_exp.py --config L3 &
+wait
+```
+
+### 0.6. Add Dashboard Integration (REQUIRED for long-running experiments)
+
+**All experiments that run for >1 minute MUST output to dashboard:**
+
+```python
+from pathlib import Path
+import json
+
+csv_path = Path("results/live") / f"experiment_name.csv"
+csv_path.parent.mkdir(parents=True, exist_ok=True)
+
+# Write header
+with open(csv_path, 'w') as f:
+    f.write("gen,test_accuracy,best_fitness,elapsed_s\n")
+
+# Write JSON metadata (REQUIRED - dashboard uses this for display)
+json_path = csv_path.with_suffix('.json')
+with open(json_path, 'w') as f:
+    json.dump({
+        'config_name': 'my_config',
+        'description': 'Brief description of what this config tests',  # Shows in dashboard
+        'arch': 'flipsparse',      # Architecture type: baseline, flipsparse, retinal, etc.
+        'H': 32,                   # Hidden size
+        'K': 4,                    # Inputs per neuron (for sparse)
+        'L': 1,                    # Number of layers (if applicable)
+        'S': 16,                   # Sensor size (for retinal arch)
+        'lambda': 0.001,           # Metabolic penalty (if applicable)
+        'flip_rate': 0.01,         # Flip mutation rate (if applicable)
+        'index_swap_rate': 0.02,   # Index swap rate (if applicable)
+        'pop_size': 100,           # Population size
+        'generations': 1000,       # Total generations
+        # ... any other config params
+    }, f, indent=2)
+
+# In training loop, write each generation:
+with open(csv_path, 'a') as f:
+    f.write(f"{gen},{accuracy},{fitness},{elapsed:.1f}\n")
+    f.flush()  # Important for live updates
+```
+
+**Dashboard displays these JSON fields:**
+- `description` - Short explanation of the config (shown in card)
+- `arch` - Architecture type (baseline, flipsparse, retinal, etc.)
+- `H`, `K`, `L`, `S` - Architecture parameters
+- `lambda` - Metabolic fitness penalty (if > 0)
+- `flip_rate`, `index_swap_rate` - Mutation rates
+- `pop_size`, `generations` - Training params
+
 ### 1. Create the Experiment Code
 
 Create a file in `experiments/` with a descriptive name:

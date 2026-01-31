@@ -108,6 +108,37 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             font-size: 12px;
             margin-bottom: 10px;
         }
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 10px 15px;
+            background: #16213e;
+            border-radius: 8px;
+            border: 1px solid #0f3460;
+        }
+        .controls label {
+            color: #888;
+            font-size: 13px;
+            margin-right: 10px;
+        }
+        .controls select {
+            background: #0f3460;
+            color: #fff;
+            border: 1px solid #00d4ff44;
+            border-radius: 4px;
+            padding: 6px 12px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+        .controls select:hover {
+            border-color: #00d4ff;
+        }
+        .experiment-count {
+            color: #00d4ff;
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
@@ -115,6 +146,25 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         <h1>GENREG Experiment Dashboard</h1>
         <p class="subtitle">Live monitoring of experiments in <code>results/live/</code></p>
         <p class="refresh-info">Auto-refreshes every 3 seconds</p>
+
+        <div class="controls">
+            <div>
+                <label for="sort-select">Sort by:</label>
+                <select id="sort-select" onchange="refresh()">
+                    <option value="accuracy-desc">Accuracy (High → Low)</option>
+                    <option value="accuracy-asc">Accuracy (Low → High)</option>
+                    <option value="gen-desc">Generation (High → Low)</option>
+                    <option value="gen-asc">Generation (Low → High)</option>
+                    <option value="fitness-desc">Fitness (High → Low)</option>
+                    <option value="fitness-asc">Fitness (Low → High)</option>
+                    <option value="name-asc">Name (A → Z)</option>
+                    <option value="name-desc">Name (Z → A)</option>
+                    <option value="elapsed-desc">Time (Longest)</option>
+                    <option value="elapsed-asc">Time (Shortest)</option>
+                </select>
+            </div>
+            <span class="experiment-count" id="exp-count"></span>
+        </div>
 
         <div class="charts">
             <div class="chart-box">
@@ -146,13 +196,54 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             }
         }
 
+        function sortExperiments(experiments) {
+            const sortBy = document.getElementById('sort-select').value;
+            const [field, direction] = sortBy.split('-');
+            const mult = direction === 'desc' ? -1 : 1;
+
+            return [...experiments].sort((a, b) => {
+                const latestA = a.data[a.data.length - 1] || {};
+                const latestB = b.data[b.data.length - 1] || {};
+
+                let valA, valB;
+                switch (field) {
+                    case 'accuracy':
+                        valA = latestA.test_accuracy || 0;
+                        valB = latestB.test_accuracy || 0;
+                        break;
+                    case 'gen':
+                        valA = latestA.gen || 0;
+                        valB = latestB.gen || 0;
+                        break;
+                    case 'fitness':
+                        valA = latestA.best_fitness || -Infinity;
+                        valB = latestB.best_fitness || -Infinity;
+                        break;
+                    case 'name':
+                        return mult * a.name.localeCompare(b.name);
+                    case 'elapsed':
+                        valA = latestA.elapsed_s || 0;
+                        valB = latestB.elapsed_s || 0;
+                        break;
+                    default:
+                        valA = 0; valB = 0;
+                }
+                return mult * (valA - valB);
+            });
+        }
+
         function updateCharts(experiments) {
+            document.getElementById('exp-count').textContent = `${experiments.length} experiments`;
+
             if (experiments.length === 0) {
                 document.getElementById('accuracy-chart').innerHTML = '<div class="no-data">No experiments running.<br><br>Add CSVs to <code>results/live/</code></div>';
                 document.getElementById('fitness-chart').innerHTML = '';
                 document.getElementById('stats-container').innerHTML = '';
                 return;
             }
+
+            // Sort experiments for stat cards
+            const sortedExperiments = sortExperiments(experiments);
 
             // Accuracy chart
             const accTraces = experiments.map((exp, i) => ({
@@ -196,8 +287,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 height: 300
             }, { responsive: true });
 
-            // Stats cards
-            const statsHtml = experiments.map((exp, i) => {
+            // Stats cards (use sorted order)
+            const statsHtml = sortedExperiments.map((exp, i) => {
                 const latest = exp.data[exp.data.length - 1] || {};
                 const acc = (latest.test_accuracy * 100).toFixed(1);
                 const elapsed = latest.elapsed_s ? formatTime(latest.elapsed_s) : '-';
@@ -224,9 +315,21 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                         </div>
                         ${eta ? `<div class="stat-row"><span class="stat-label">ETA</span><span class="stat-value">${eta}</span></div>` : ''}
                         ${exp.config ? `
+                            ${exp.config.description ? `
+                                <div class="stat-row">
+                                    <span class="stat-label">Description</span>
+                                    <span class="stat-value" style="font-size: 11px; color: #aaa;">${exp.config.description}</span>
+                                </div>
+                            ` : ''}
+                            ${exp.config.arch ? `
+                                <div class="stat-row">
+                                    <span class="stat-label">Architecture</span>
+                                    <span class="stat-value">${exp.config.arch}</span>
+                                </div>
+                            ` : ''}
                             <div class="stat-row">
                                 <span class="stat-label">Config</span>
-                                <span class="stat-value">H=${exp.config.hidden || '?'}, K=${exp.config.k || '?'}</span>
+                                <span class="stat-value">${formatConfig(exp.config)}</span>
                             </div>
                         ` : ''}
                     </div>
@@ -249,6 +352,31 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             const rate = latest.elapsed_s / latest.gen;
             const etaSeconds = remaining * rate;
             return formatTime(etaSeconds);
+        }
+
+        function formatConfig(config) {
+            // Build config string from available fields
+            const parts = [];
+
+            // Architecture params (in order of importance)
+            if (config.H !== undefined) parts.push(`H=${config.H}`);
+            if (config.K !== undefined) parts.push(`K=${config.K}`);
+            if (config.L !== undefined) parts.push(`L=${config.L}`);
+            if (config.S !== undefined) parts.push(`S=${config.S}`);
+
+            // Training params
+            if (config.lambda !== undefined && config.lambda > 0) parts.push(`λ=${config.lambda}`);
+            if (config.flip_rate !== undefined) parts.push(`flip=${config.flip_rate}`);
+            if (config.index_swap_rate !== undefined) parts.push(`idx=${config.index_swap_rate}`);
+            if (config.pop_size !== undefined) parts.push(`pop=${config.pop_size}`);
+
+            // Fallback to old format if new fields not found
+            if (parts.length === 0) {
+                if (config.hidden) parts.push(`H=${config.hidden}`);
+                if (config.k) parts.push(`K=${config.k}`);
+            }
+
+            return parts.length > 0 ? parts.join(', ') : '-';
         }
 
         async function refresh() {

@@ -1,15 +1,22 @@
 """
-Experiment: Deep Networks for Digits (2D Spatial Reasoning)
+Experiment: Narrow-Deep vs Wide-Shallow (Controlled Comparison)
 
-Hypothesis: For 2D spatial data (8x8 images), we need hierarchical representations.
-A single hidden layer may not capture spatial relationships effectively.
+Question: Can depth compensate for width at a fixed parameter budget?
 
-Test architectures:
-1. Shallow: 64 → H → 10
-2. Deep (2 layers): 64 → H → H → 10
-3. Deep (3 layers): 64 → H → H → H → 10
+Hypothesis: Deeper networks may enable better feature composition through
+hierarchical representations, potentially improving accuracy on digits.
 
-Each layer is ultra-sparse (K inputs per neuron).
+Design (controlled experiment):
+- Independent variable: Depth (L=1, 2, 3)
+- Controlled variables: K=4 (fixed), ~490 params (matched), GSA settings
+- Dependent variable: Test accuracy
+
+Configs at ~490 params with K=4:
+- L=1, H=32: 32*4 + 32 + 10*32 + 10 = 490 params (baseline)
+- L=2, H=24: 24*4 + 24 + 24*4 + 24 + 10*24 + 10 = 490 params
+- L=3, H=18: 18*4 + 18 + 18*4 + 18 + 18*4 + 18 + 10*18 + 10 = 460 params
+
+Success criteria: Any deep config beats shallow baseline (84.7% from extended training).
 """
 
 import sys
@@ -19,6 +26,8 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 import torch
 import numpy as np
 import time
+import warnings
+warnings.filterwarnings('ignore', category=RuntimeWarning)  # Suppress matmul warnings
 from sklearn.datasets import load_digits
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
@@ -145,8 +154,15 @@ def load_digits_data():
     )
 
 
-def run_gsa(X_train, y_onehot, X_test, y_test, hidden_sizes, k, pop_size=50, generations=200):
+def run_gsa(X_train, y_onehot, X_test, y_test, hidden_sizes, k, pop_size=50, generations=200, csv_path=None):
     """Run GSA with deep network."""
+    start_time = time.time()
+
+    # Initialize CSV for dashboard
+    if csv_path:
+        csv_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(csv_path, 'w') as f:
+            f.write("gen,test_accuracy,best_fitness,elapsed_s\n")
 
     population = []
     for i in range(pop_size):
@@ -196,10 +212,20 @@ def run_gsa(X_train, y_onehot, X_test, y_test, hidden_sizes, k, pop_size=50, gen
 
         temperature *= decay
 
+        # Calculate accuracy and log
+        with torch.no_grad():
+            preds = best_controller.forward(X_test).argmax(dim=1)
+            acc = (preds == y_test).float().mean().item()
+
+        elapsed = time.time() - start_time
+
+        # Write to CSV for dashboard
+        if csv_path:
+            with open(csv_path, 'a') as f:
+                f.write(f"{gen},{acc},{best_fitness},{elapsed:.1f}\n")
+                f.flush()
+
         if gen % 50 == 0:
-            with torch.no_grad():
-                preds = best_controller.forward(X_test).argmax(dim=1)
-                acc = (preds == y_test).float().mean().item()
             print(f"    Gen {gen}: {acc:.1%}")
 
     with torch.no_grad():
@@ -239,10 +265,10 @@ def _sa_steps(controller, X_train, y_onehot, temperature, n_steps):
 
 def main():
     print("=" * 70)
-    print("DEEP NETWORKS FOR DIGITS (2D SPATIAL REASONING)")
+    print("NARROW-DEEP vs WIDE-SHALLOW (Controlled Comparison)")
     print("=" * 70)
-    print("\nHypothesis: 2D spatial data needs hierarchical representations")
-    print("Digits are 8x8 images - depth may matter more than width\n")
+    print("\nQuestion: Can depth compensate for width at fixed param budget?")
+    print("Control: K=4 fixed, ~490 params matched, only depth varies\n")
 
     X_train, X_test, y_train, y_test = load_digits_data()
 
@@ -253,15 +279,14 @@ def main():
     print(f"Data: {len(X_train)} train, {len(X_test)} test")
     print(f"Input: 64 features (8x8 flattened), 10 classes\n")
 
-    # Test different depths
-    # Keep total params roughly similar by adjusting H
+    # Controlled comparison: K=4 throughout, ~490 params matched
+    # Only varying depth (L=1, 2, 3)
+    K = 4  # Fixed across all configs
     configs = [
         # (hidden_sizes, k, description)
-        ([64], 16, "1 layer (baseline)"),
-        ([48, 48], 12, "2 layers"),
-        ([64, 64], 16, "2 layers (wider)"),
-        ([32, 32, 32], 8, "3 layers"),
-        ([64, 64, 64], 16, "3 layers (wider)"),
+        ([32], K, "L=1, H=32 (490 params) - BASELINE"),
+        ([24, 24], K, "L=2, H=24 (490 params)"),
+        ([18, 18, 18], K, "L=3, H=18 (460 params)"),
     ]
 
     results = []
@@ -272,10 +297,16 @@ def main():
         print(f"Architecture: 64 → {' → '.join(map(str, hidden_sizes))} → 10, K={k}")
         print("=" * 60)
 
+        # Dashboard CSV path
+        depth = len(hidden_sizes)
+        h = hidden_sizes[0]
+        csv_path = Path("results/live") / f"deep_L{depth}_H{h}_K{k}.csv"
+
         start = time.time()
         accuracy, params = run_gsa(X_train, y_onehot, X_test, y_test,
                                    hidden_sizes=hidden_sizes, k=k,
-                                   pop_size=50, generations=200)
+                                   pop_size=50, generations=500,
+                                   csv_path=csv_path)
         elapsed = time.time() - start
 
         results.append({
@@ -292,28 +323,43 @@ def main():
 
     # Summary
     print("\n" + "=" * 70)
-    print("SUMMARY: Does depth help for 2D spatial reasoning?")
+    print("RESULTS: Does depth help at fixed param budget?")
     print("=" * 70)
-    print(f"\n{'Architecture':<30} | {'Depth':<6} | {'Params':<8} | {'Accuracy':<10}")
-    print("-" * 65)
+    print(f"\n{'Config':<35} | {'Params':<8} | {'Accuracy':<10}")
+    print("-" * 60)
 
+    baseline_acc = None
     for r in results:
-        arch = f"64→{'→'.join(map(str, r['hidden_sizes']))}→10"
-        marker = " ✅" if r['accuracy'] > 0.9 else ""
-        print(f"{arch:<30} | {r['depth']:<6} | {r['params']:<8} | {r['accuracy']:<10.1%}{marker}")
+        arch = f"64→{'→'.join(map(str, r['hidden_sizes']))}→10 (K={r['k']})"
+        if r['depth'] == 1:
+            baseline_acc = r['accuracy']
+            marker = " (baseline)"
+        elif baseline_acc and r['accuracy'] > baseline_acc:
+            marker = " ✅ BETTER"
+        elif baseline_acc and r['accuracy'] < baseline_acc:
+            marker = f" ({(r['accuracy'] - baseline_acc)*100:+.1f}pp)"
+        else:
+            marker = ""
+        print(f"{arch:<35} | {r['params']:<8} | {r['accuracy']:<.1%}{marker}")
 
-    print("-" * 65)
+    print("-" * 60)
+    print("Extended training baseline (H=32, K=4, L=1): 84.7%")
     print("Dense backprop: 97.0% accuracy, 8970 params")
 
-    # Compare by depth
+    # Conclusion
     print("\n" + "=" * 70)
-    print("DEPTH COMPARISON (best per depth)")
+    print("CONCLUSION")
     print("=" * 70)
-    for depth in [1, 2, 3]:
-        depth_results = [r for r in results if r['depth'] == depth]
-        if depth_results:
-            best = max(depth_results, key=lambda x: x['accuracy'])
-            print(f"{depth} layer(s): {best['accuracy']:.1%} (config: {best['desc']})")
+    best = max(results, key=lambda x: x['accuracy'])
+    shallow = [r for r in results if r['depth'] == 1][0]
+    if best['depth'] > 1:
+        print(f"✅ Depth HELPS: L={best['depth']} ({best['accuracy']:.1%}) > L=1 ({shallow['accuracy']:.1%})")
+    else:
+        print(f"❌ Depth does NOT help: L=1 ({shallow['accuracy']:.1%}) is best")
+        deep_results = [r for r in results if r['depth'] > 1]
+        if deep_results:
+            worst_deep = min(deep_results, key=lambda x: x['accuracy'])
+            print(f"   Deeper networks hurt: L={worst_deep['depth']} = {worst_deep['accuracy']:.1%}")
 
 
 if __name__ == "__main__":
