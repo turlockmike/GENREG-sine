@@ -1015,6 +1015,16 @@ See: [docs/experiments/2026-01-30_gsa_ablation.md](experiments/2026-01-30_gsa_ab
 
 **Result**: GSA beats random restarts 71.9% vs 68.3% (+3.6pp). Chain length matters more than quantity.
 
+## Experiment 18: Extended Training (5000 gens)
+
+See: [docs/experiments/2026-01-30_extended_training.md](experiments/2026-01-30_extended_training.md)
+
+**Result**: Plateau at gen ~900, peak 84.7% accuracy. Extended training does NOT break through ceiling.
+
+**Key finding**: Stop at gen 500 for 80% (17 min) or gen 900 for 84% (30 min). Beyond that is wasteful.
+
+---
+
 ## Next Steps
 
 1. **Test on more benchmarks**: Friedman2, Friedman3, UCI datasets
