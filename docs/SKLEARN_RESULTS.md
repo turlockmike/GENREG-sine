@@ -63,6 +63,25 @@ Ran 10 seeds each for Fixed K=4 and VariableK with pop=50 (vs previous pop=100, 
 
 **Result**: Fixed K=4 with 10 seeds achieved **95.3%** (vs 94.7% with 3 seeds, +0.6pp). The best result came from seed exploration, not larger populations.
 
+### Extreme Seed Exploration (20 Seeds, pop=20, 500 gens)
+
+Pushed further with 20 seeds and minimal population:
+
+| Strategy | Best Found | Total Compute |
+|----------|------------|---------------|
+| pop=100, 3 seeds, 1000 gens | 94.7% | 300k |
+| pop=50, 10 seeds, 1000 gens | **95.3%** | 500k |
+| pop=20, 20 seeds, 500 gens | 94.2% | 200k |
+
+**Key insight**: Variance doesn't matter - only the best solution survives. Nature uses variance to explore; most individuals fail, but the fittest wins.
+
+**Population size limit**: At pop < 20, the selection algorithm breaks down. With seed_fraction=0.05:
+- pop=20: 1 elite + 19 sampled (minimal but functional)
+- pop=10: 1 elite + 9 sampled (marginal)
+- pop=5: 1 elite + 4 sampled (ineffective - just run independent SA)
+
+Below pop=20, better to run pure independent SA seeds rather than GSA.
+
 ### Key Findings
 
 1. **VariableK discovers optimal K**: Across all datasets, variableK converges to K≈4-5, confirming K=4 is near-optimal

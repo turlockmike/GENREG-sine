@@ -3,7 +3,7 @@ Experiment: Digits with Many Seeds
 
 Hypothesis: More seeds with smaller population is better than fewer seeds with larger population.
 
-Test: pop=50, 10 seeds for both fixed K=4 and variableK on digits.
+Test: pop=20, 500 gens, 20 seeds for both fixed K=4 and variableK on digits.
 """
 
 import sys
@@ -302,18 +302,18 @@ def load_digits_data():
     return X_train, y_onehot, X_test, y_test
 
 
-# Settings: pop=50, 1000 generations, 10 seeds each
+# Settings: pop=20, 500 generations, 20 seeds each
 BASE = {
-    'H': 32, 'pop_size': 50, 'generations': 1000, 'sa_steps': 20, 'seed_fraction': 0.05,
+    'H': 32, 'pop_size': 20, 'generations': 500, 'sa_steps': 20, 'seed_fraction': 0.05,
     'weight_rate': 0.02, 'weight_scale': 0.15, 'index_swap_rate': 0.02,
     'grow_rate': 0.01, 'shrink_rate': 0.01, 'initial_k': 4, 'max_k': 16, 'K': 4,
 }
 
 CONFIGS = {}
 
-# Generate configs: 2 K types × 10 seeds = 20 configs
+# Generate configs: 2 K types × 20 seeds = 40 configs
 for k_type in ['fixed', 'variable']:
-    for seed in range(10):
+    for seed in range(20):
         name = f"digits_{k_type}_seed{seed}"
         CONFIGS[name] = {
             **BASE,
