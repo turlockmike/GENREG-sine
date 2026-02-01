@@ -87,30 +87,28 @@ Compare:
 
 ## High Priority
 
-### 0. Training Improvements ⭐ TOP PRIORITY
+### 0. Training Improvements
 
-Two techniques to try before MNIST:
+#### A. Data Augmentation ✅ COMPLETE (NEGATIVE RESULT)
+**Question**: Does augmenting training data improve generalization?
 
-#### A. Data Augmentation
-**Question**: Does augmenting training data improve generalization without changing the algorithm?
+**Result**: **NO - augmentation HURTS accuracy on sklearn digits**
 
-**Technique**: Random transforms during fitness evaluation:
-- Rotation: ±10°
-- Shift: ±10% in x/y
-- Zoom: ±10%
-- (Optional) Elastic deformation
+| Config | Accuracy | vs Baseline |
+|--------|----------|-------------|
+| baseline | **95.6%** | - |
+| static_2x | 92.5% | -3.1pp |
+| static_5x | 90.0% | -5.6pp |
 
-**Expected benefit**: +2-5% accuracy, more robust networks
+**Why it hurts**:
+- 8×8 images lose structure under rotation/shift
+- sklearn digits already clean and normalized
+- Evolutionary training provides implicit regularization
 
-**Implementation**:
-```python
-def augment_batch(X):
-    # Apply random rotation, shift, zoom to each image
-    return X_augmented
+**Conclusion**: Skip augmentation for small images. May still help on larger images (MNIST 28×28).
 
-# During fitness eval
-pred = controller.forward(augment_batch(X_train))
-```
+**Files**: `core/augmentation.py`, `experiments/gsa_augmented.py`
+**Report**: `docs/experiments/2026-01-31_data_augmentation.md`
 
 #### B. Mini-Batch Fitness Evaluation
 **Question**: Does noisy fitness (evaluating on random subset) help exploration?
